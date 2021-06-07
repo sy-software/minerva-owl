@@ -1,6 +1,7 @@
 package service
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/sy-software/minerva-owl/internal/core/domain"
@@ -20,6 +21,11 @@ func TestOrganizationIsCreated(t *testing.T) {
 
 	if err != nil {
 		t.Errorf("Item should be created without errors: %v", err)
+	}
+
+	match, err := regexp.MatchString("^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89AB][0-9a-f]{3}-[0-9a-f]{12}$", created.Id)
+	if !match || err != nil {
+		t.Errorf("ID is not V4 UUID got: %v", created.Id)
 	}
 
 	if created.Name != "name" {
