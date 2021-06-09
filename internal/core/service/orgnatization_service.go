@@ -12,11 +12,11 @@ type OrganizationService struct {
 }
 
 func (srv *OrganizationService) All() ([]domain.Organization, error) {
-	return []domain.Organization{}, nil
+	return srv.repository.All()
 }
 
 func (srv *OrganizationService) Get(id string) (domain.Organization, error) {
-	return domain.Organization{}, nil
+	return srv.repository.Get(id)
 }
 
 func (srv *OrganizationService) Create(name string, description string, logo string) (domain.Organization, error) {
@@ -31,9 +31,9 @@ func (srv *OrganizationService) Create(name string, description string, logo str
 }
 
 func (srv *OrganizationService) Update(entity domain.Organization) (domain.Organization, error) {
-	return domain.Organization{}, nil
+	return entity, srv.repository.Save(entity)
 }
 
 func (srv *OrganizationService) Delete(id string, hard bool) error {
-	return nil
+	return srv.repository.Delete(id)
 }
