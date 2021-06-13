@@ -11,6 +11,12 @@ type OrganizationService struct {
 	repository ports.OrganizationRepo
 }
 
+func NewOrgService(repo ports.OrganizationRepo) *OrganizationService {
+	return &OrganizationService{
+		repository: repo,
+	}
+}
+
 func (srv *OrganizationService) All() ([]domain.Organization, error) {
 	return srv.repository.All()
 }
