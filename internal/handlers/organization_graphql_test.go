@@ -6,6 +6,7 @@ import (
 
 	"github.com/sy-software/minerva-owl/cmd/graphql/graph/model"
 	"github.com/sy-software/minerva-owl/internal/core/domain"
+	"github.com/sy-software/minerva-owl/internal/core/ports"
 	"github.com/sy-software/minerva-owl/internal/core/service"
 	"github.com/sy-software/minerva-owl/mocks"
 )
@@ -144,6 +145,128 @@ func TestCreateOperation(t *testing.T) {
 
 		if len(repo.DummyData) != 1 {
 			t.Errorf("Expected repository to have 1 element got: %d", len(repo.DummyData))
+		}
+	})
+}
+
+func TestUpdateOperation(t *testing.T) {
+	t.Run("Partial Update", func(t *testing.T) {
+		repo := &mocks.OrgInMemoryRepo{
+			DummyData: []domain.Organization{
+				{
+					Id:          "myid",
+					Name:        "originalName",
+					Description: "originalDescription",
+					Logo:        "",
+				},
+			},
+		}
+
+		orgService := service.NewOrgService(repo)
+		handlerInstance := NewOrgGraphqlHandler(*orgService)
+
+		logo := "logo"
+
+		expected := model.Organization{
+			ID:          "myid",
+			Name:        "newName",
+			Description: "originalDescription",
+			Logo:        &logo,
+		}
+		got, err := handlerInstance.Update(expected.ID, &expected.Name, nil, &logo)
+
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+
+		if got.Name != expected.Name {
+			t.Errorf("Expected Name to be: %q got: %q", expected.Name, got.Name)
+		}
+
+		if got.Description != expected.Description {
+			t.Errorf("Expected Description to be: %q got: %q", expected.Description, got.Description)
+		}
+
+		if *got.Logo != *expected.Logo {
+			t.Errorf("Expected.Logo to be: %q got: %q", *expected.Logo, *got.Logo)
+		}
+
+		if len(repo.DummyData) != 1 {
+			t.Errorf("Expected repository to have 1 element got: %d", len(repo.DummyData))
+		}
+	})
+
+	t.Run("Complete Update", func(t *testing.T) {
+		repo := &mocks.OrgInMemoryRepo{
+			DummyData: []domain.Organization{
+				{
+					Id:          "myid",
+					Name:        "originalName",
+					Description: "originalDescription",
+					Logo:        "",
+				},
+			},
+		}
+
+		orgService := service.NewOrgService(repo)
+		handlerInstance := NewOrgGraphqlHandler(*orgService)
+
+		logo := "logo"
+
+		expected := model.Organization{
+			ID:          "myid",
+			Name:        "newName",
+			Description: "newDescription",
+			Logo:        &logo,
+		}
+		got, err := handlerInstance.Update(expected.ID, &expected.Name, &expected.Description, &logo)
+
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+
+		if got.Name != expected.Name {
+			t.Errorf("Expected Name to be: %q got: %q", expected.Name, got.Name)
+		}
+
+		if got.Description != expected.Description {
+			t.Errorf("Expected Description to be: %q got: %q", expected.Description, got.Description)
+		}
+
+		if *got.Logo != *expected.Logo {
+			t.Errorf("Expected.Logo to be: %q got: %q", *expected.Logo, *got.Logo)
+		}
+
+		if len(repo.DummyData) != 1 {
+			t.Errorf("Expected repository to have 1 element got: %d", len(repo.DummyData))
+		}
+	})
+
+	t.Run("Update a non-existing id", func(t *testing.T) {
+		repo := &mocks.OrgInMemoryRepo{
+			DummyData: []domain.Organization{},
+		}
+
+		orgService := service.NewOrgService(repo)
+		handlerInstance := NewOrgGraphqlHandler(*orgService)
+
+		logo := "logo"
+
+		expected := model.Organization{
+			ID:          "myid",
+			Name:        "newName",
+			Description: "originalDescription",
+			Logo:        &logo,
+		}
+		_, err := handlerInstance.Update(expected.ID, &expected.Name, nil, &logo)
+
+		if err == nil {
+			t.Errorf("Expected error got nil")
+		}
+
+		_, ok := err.(ports.ErrItemNotFound)
+		if !ok {
+			t.Errorf("Expected error of type ErrItemNotFound got: %T", err)
 		}
 	})
 }
