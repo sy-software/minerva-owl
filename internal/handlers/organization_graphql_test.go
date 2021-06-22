@@ -105,7 +105,7 @@ func TestCreateOperation(t *testing.T) {
 		}
 	})
 
-	t.Run("Create an Organization without logo", func(t *testing.T) {
+	t.Run("Create an Organization with logo", func(t *testing.T) {
 		repo := &mocks.OrgInMemoryRepo{
 			DummyData: []domain.Organization{},
 		}
@@ -145,6 +145,119 @@ func TestCreateOperation(t *testing.T) {
 
 		if len(repo.DummyData) != 1 {
 			t.Errorf("Expected repository to have 1 element got: %d", len(repo.DummyData))
+		}
+	})
+}
+
+func TestQueryOperations(t *testing.T) {
+	t.Run("Query all items", func(t *testing.T) {
+		repo := &mocks.OrgInMemoryRepo{
+			DummyData: []domain.Organization{
+				{
+					Id:          "myid1",
+					Name:        "originalName",
+					Description: "originalDescription",
+					Logo:        "",
+				},
+				{
+					Id:          "myid2",
+					Name:        "originalName",
+					Description: "originalDescription",
+					Logo:        "",
+				},
+				{
+					Id:          "myid3",
+					Name:        "originalName",
+					Description: "originalDescription",
+					Logo:        "",
+				},
+			},
+		}
+
+		orgService := service.NewOrgService(repo)
+		handlerInstance := NewOrgGraphqlHandler(*orgService)
+
+		got, err := handlerInstance.Query()
+
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+
+		if len(got) != len(repo.DummyData) {
+			t.Errorf("Expected: %d elements got: %d", len(repo.DummyData), len(got))
+		}
+	})
+
+	t.Run("Query items by Id", func(t *testing.T) {
+		repo := &mocks.OrgInMemoryRepo{
+			DummyData: []domain.Organization{
+				{
+					Id:          "myid1",
+					Name:        "originalName",
+					Description: "originalDescription",
+					Logo:        "",
+				},
+				{
+					Id:          "myid2",
+					Name:        "originalName2",
+					Description: "originalDescription2",
+					Logo:        "",
+				},
+				{
+					Id:          "myid3",
+					Name:        "originalName",
+					Description: "originalDescription",
+					Logo:        "",
+				},
+			},
+		}
+
+		logo := ""
+		expected := model.Organization{
+			ID:          "myid2",
+			Name:        "originalName2",
+			Description: "originalDescription2",
+			Logo:        &logo,
+		}
+		orgService := service.NewOrgService(repo)
+		handlerInstance := NewOrgGraphqlHandler(*orgService)
+
+		got, err := handlerInstance.QueryById(expected.ID)
+
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+
+		if got.ID != expected.ID {
+			t.Errorf("Expected ID to be: %q got: %q", expected.ID, got.ID)
+		}
+
+		if got.Name != expected.Name {
+			t.Errorf("Expected Name to be: %q got: %q", expected.Name, got.Name)
+		}
+
+		if got.Description != expected.Description {
+			t.Errorf("Expected Description to be: %q got: %q", expected.Description, got.Description)
+		}
+	})
+
+	t.Run("Query a non-existing id", func(t *testing.T) {
+		repo := &mocks.OrgInMemoryRepo{
+			DummyData: []domain.Organization{},
+		}
+
+		orgService := service.NewOrgService(repo)
+		handlerInstance := NewOrgGraphqlHandler(*orgService)
+
+		_, err := handlerInstance.QueryById("myid")
+
+		if err == nil {
+			t.Errorf("Expected error got nil")
+		}
+
+		_, ok := err.(ports.ErrItemNotFound)
+		if !ok {
+			t.Errorf("Expected error of type ErrItemNotFound got: %T", err)
 		}
 	})
 }
