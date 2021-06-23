@@ -383,3 +383,51 @@ func TestUpdateOperation(t *testing.T) {
 		}
 	})
 }
+
+func TestDeleteOperaton(t *testing.T) {
+	t.Run("Delete an item", func(t *testing.T) {
+		repo := &mocks.OrgInMemoryRepo{
+			DummyData: []domain.Organization{
+				{
+					Id:          "myid",
+					Name:        "originalName",
+					Description: "originalDescription",
+					Logo:        "",
+				},
+			},
+		}
+
+		orgService := service.NewOrgService(repo)
+		handlerInstance := NewOrgGraphqlHandler(*orgService)
+
+		_, err := handlerInstance.Delete("myid")
+
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+
+		if len(repo.DummyData) != 0 {
+			t.Errorf("Expected 0 items in repo got: %d", len(repo.DummyData))
+		}
+	})
+
+	t.Run("Delete a non-existing id", func(t *testing.T) {
+		repo := &mocks.OrgInMemoryRepo{
+			DummyData: []domain.Organization{},
+		}
+
+		orgService := service.NewOrgService(repo)
+		handlerInstance := NewOrgGraphqlHandler(*orgService)
+
+		_, err := handlerInstance.Delete("id")
+
+		if err == nil {
+			t.Errorf("Expected error got nil")
+		}
+
+		_, ok := err.(ports.ErrItemNotFound)
+		if !ok {
+			t.Errorf("Expected error of type ErrItemNotFound got: %T", err)
+		}
+	})
+}
