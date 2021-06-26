@@ -6,23 +6,28 @@ import (
 	"time"
 
 	"github.com/gocql/gocql"
+	"github.com/sy-software/minerva-owl/internal/core/domain"
 )
 
+// Cassandra holds Cassandra DB related objects
 type Cassandra struct {
-	cluster gocql.ClusterConfig
-	session gocql.Session
+	cluster *gocql.ClusterConfig
+	session *gocql.Session
 }
 
 var instance *Cassandra
 var once sync.Once
 
-func GetCassandra() *Cassandra {
+// GetCassandra Gets a singleton connection with Cassandra DB
+func GetCassandra(config domain.CDBConfig) *Cassandra {
 	once.Do(func() {
-		cluster := gocql.NewCluster("127.0.0.1") //replace PublicIP with the IP addresses used by your cluster.
+		cluster := gocql.NewCluster(config.Host)
+		cluster.Port = config.Port
 		cluster.Consistency = gocql.Quorum
 		cluster.ProtoVersion = 4
-		cluster.ConnectTimeout = time.Second * 10
-		cluster.Timeout = time.Second * 10
+		cluster.ConnectTimeout = time.Second * config.ConnectTimeout
+		cluster.Timeout = time.Second * config.ConnectTimeout
+		cluster.NumConns = config.Connections
 
 		// TODO: Add authentication
 		// cluster.Authenticator = gocql.PasswordAuthenticator{Username: "Username", Password: "Password"} //replace the username and password fields with their real settings.
@@ -40,10 +45,14 @@ func GetCassandra() *Cassandra {
 		}
 
 		instance = &Cassandra{
-			cluster: *cluster,
-			session: *session,
+			cluster: cluster,
+			session: session,
 		}
 	})
 
 	return instance
+}
+
+func (cassandra *Cassandra) Close() {
+	cassandra.session.Close()
 }

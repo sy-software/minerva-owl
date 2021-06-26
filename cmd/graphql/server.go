@@ -12,20 +12,22 @@ import (
 	"github.com/sy-software/minerva-owl/internal/core/domain"
 	"github.com/sy-software/minerva-owl/internal/core/service"
 	"github.com/sy-software/minerva-owl/internal/handlers"
-	"github.com/sy-software/minerva-owl/mocks"
+	"github.com/sy-software/minerva-owl/internal/repositories"
 )
 
-const defaultPort = "8080"
+const defaultConfigFile = "./config.json"
 
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
+	configFile := os.Getenv("CONFIG_FILE")
+	if configFile == "" {
+		configFile = defaultConfigFile
 	}
 
-	repo := &mocks.OrgInMemoryRepo{
-		DummyData: []domain.Organization{},
-	}
+	config := domain.LoadConfiguration(configFile)
+	cassandra := repositories.GetCassandra(config.CassandraDB)
+	repo := repositories.NewOrgRepo(cassandra)
+
+	defer cassandra.Close()
 
 	service := service.NewOrgService(repo)
 	handlerInstance := handlers.NewOrgGraphqlHandler(*service)
@@ -37,6 +39,6 @@ func main() {
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)
 
-	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Printf("connect to http://localhost:%s/ for GraphQL playground", config.Port)
+	log.Fatal(http.ListenAndServe(config.Host+":"+config.Port, nil))
 }
