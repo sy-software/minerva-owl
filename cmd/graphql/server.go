@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -24,7 +25,13 @@ func main() {
 	}
 
 	config := domain.LoadConfiguration(configFile)
-	cassandra := repositories.GetCassandra(config.CassandraDB)
+	cassandra, err := repositories.GetCassandra(config.CassandraDB)
+
+	if err != nil {
+		fmt.Println("Can't start server")
+		os.Exit(1)
+	}
+
 	repo := repositories.NewOrgRepo(cassandra)
 
 	defer cassandra.Close()

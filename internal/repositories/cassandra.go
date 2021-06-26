@@ -19,7 +19,8 @@ var instance *Cassandra
 var once sync.Once
 
 // GetCassandra Gets a singleton connection with Cassandra DB
-func GetCassandra(config domain.CDBConfig) *Cassandra {
+func GetCassandra(config domain.CDBConfig) (*Cassandra, error) {
+	var dbErr error
 	once.Do(func() {
 		cluster := gocql.NewCluster(config.Host)
 		cluster.Port = config.Port
@@ -34,14 +35,17 @@ func GetCassandra(config domain.CDBConfig) *Cassandra {
 		session, err := cluster.CreateSession()
 
 		if err != nil {
-			// TODO: Handle errors correctly
-			fmt.Printf("Error connection: %v", err)
+			fmt.Printf("Can't connect to cassandra: %v\n", err)
+			dbErr = err
+			return
 		}
 
 		// create keyspaces
 		err = session.Query("CREATE KEYSPACE IF NOT EXISTS minerva WITH replication = {'class':'SimpleStrategy', 'replication_factor' : 3};").Exec()
 		if err != nil {
-			fmt.Printf("Error creating keyspace: %v", err)
+			fmt.Printf("Error creating keyspace: %v\n", err)
+			dbErr = err
+			return
 		}
 
 		instance = &Cassandra{
@@ -50,7 +54,7 @@ func GetCassandra(config domain.CDBConfig) *Cassandra {
 		}
 	})
 
-	return instance
+	return instance, dbErr
 }
 
 func (cassandra *Cassandra) Close() {

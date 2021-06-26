@@ -50,7 +50,7 @@ func LoadConfiguration(file string) Config {
 	configFile, err := os.Open(file)
 
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Printf("Can't load config file. Default values will be used instead\n\t%v\n", err.Error())
 	}
 
 	defer configFile.Close()
