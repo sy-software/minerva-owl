@@ -1,0 +1,13 @@
+{
+    "cassandraDB" : {
+        "host" : "127.0.0.1",
+        "port" : 9042,
+        "username" : "user",
+        "password" : "password",
+        "timeout" : 10,
+        "connectTimeout" : 10,
+        "connections" : 2
+    },
+    "host" : "127.0.0.1",
+    "port" : 8080
+}

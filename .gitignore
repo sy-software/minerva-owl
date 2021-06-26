@@ -120,3 +120,6 @@ n
 n
 
 bin/
+
+# Keep configuration out from source control
+config.json
