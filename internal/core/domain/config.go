@@ -2,9 +2,10 @@ package domain
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 // CDBConfig holds Cassandra DB related configurations
@@ -50,7 +51,7 @@ func LoadConfiguration(file string) Config {
 	configFile, err := os.Open(file)
 
 	if err != nil {
-		fmt.Printf("Can't load config file. Default values will be used instead\n\t%v\n", err.Error())
+		log.Warn().Err(err).Msg("Can't load config file. Default values will be used instead")
 	}
 
 	defer configFile.Close()

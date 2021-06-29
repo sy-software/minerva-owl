@@ -1,13 +1,13 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"net/http"
 	"os"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/sy-software/minerva-owl/cmd/graphql/graph"
 	"github.com/sy-software/minerva-owl/cmd/graphql/graph/generated"
 	"github.com/sy-software/minerva-owl/internal/core/domain"
@@ -19,6 +19,9 @@ import (
 const defaultConfigFile = "./config.json"
 
 func main() {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	log.Info().Msg("Starting server")
+
 	configFile := os.Getenv("CONFIG_FILE")
 	if configFile == "" {
 		configFile = defaultConfigFile
@@ -28,11 +31,15 @@ func main() {
 	cassandra, err := repositories.GetCassandra(config.CassandraDB)
 
 	if err != nil {
-		fmt.Println("Can't start server")
+		log.Error().Stack().Err(err).Msg("Can't initialize Cassandra DB:")
 		os.Exit(1)
 	}
 
-	repo := repositories.NewOrgRepo(cassandra)
+	repo, err := repositories.NewOrgRepo(cassandra)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Can't start Cassandra DB Repo:")
+		os.Exit(1)
+	}
 
 	defer cassandra.Close()
 
@@ -46,6 +53,8 @@ func main() {
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)
 
-	log.Printf("connect to http://localhost:%s/ for GraphQL playground", config.Port)
-	log.Fatal(http.ListenAndServe(config.Host+":"+config.Port, nil))
+	log.Info().Msgf("connect to http://localhost:%s/ for GraphQL playground", config.Port)
+	log.Fatal().
+		Err(http.ListenAndServe(config.Host+":"+config.Port, nil)).
+		Msg("Can't start server")
 }

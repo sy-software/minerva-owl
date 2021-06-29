@@ -1,11 +1,11 @@
 package repositories
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
 	"github.com/gocql/gocql"
+	"github.com/rs/zerolog/log"
 	"github.com/sy-software/minerva-owl/internal/core/domain"
 )
 
@@ -22,6 +22,7 @@ var once sync.Once
 func GetCassandra(config domain.CDBConfig) (*Cassandra, error) {
 	var dbErr error
 	once.Do(func() {
+		log.Info().Msg("Initializing Cassandra DB connection")
 		cluster := gocql.NewCluster(config.Host)
 		cluster.Port = config.Port
 		cluster.Consistency = gocql.Quorum
@@ -30,12 +31,14 @@ func GetCassandra(config domain.CDBConfig) (*Cassandra, error) {
 		cluster.Timeout = time.Second * config.ConnectTimeout
 		cluster.NumConns = config.Connections
 
+		// TODO: Pass a logger with our standard format
+		// cluster.Logger = ....
+
 		// TODO: Add authentication
 		// cluster.Authenticator = gocql.PasswordAuthenticator{Username: "Username", Password: "Password"} //replace the username and password fields with their real settings.
 		session, err := cluster.CreateSession()
 
 		if err != nil {
-			fmt.Printf("Can't connect to cassandra: %v\n", err)
 			dbErr = err
 			return
 		}
@@ -43,7 +46,6 @@ func GetCassandra(config domain.CDBConfig) (*Cassandra, error) {
 		// create keyspaces
 		err = session.Query("CREATE KEYSPACE IF NOT EXISTS minerva WITH replication = {'class':'SimpleStrategy', 'replication_factor' : 3};").Exec()
 		if err != nil {
-			fmt.Printf("Error creating keyspace: %v\n", err)
 			dbErr = err
 			return
 		}
