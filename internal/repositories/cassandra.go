@@ -6,13 +6,14 @@ import (
 
 	"github.com/gocql/gocql"
 	"github.com/rs/zerolog/log"
+	"github.com/scylladb/gocqlx/v2"
 	"github.com/sy-software/minerva-owl/internal/core/domain"
 )
 
 // Cassandra holds Cassandra DB related objects
 type Cassandra struct {
 	cluster *gocql.ClusterConfig
-	session *gocql.Session
+	session *gocqlx.Session
 }
 
 var instance *Cassandra
@@ -25,7 +26,7 @@ func GetCassandra(config domain.CDBConfig) (*Cassandra, error) {
 		log.Info().Msg("Initializing Cassandra DB connection")
 		cluster := gocql.NewCluster(config.Host)
 		cluster.Port = config.Port
-		cluster.Consistency = gocql.Quorum
+		cluster.Consistency = gocql.Any
 		cluster.ProtoVersion = 4
 		cluster.ConnectTimeout = time.Second * config.ConnectTimeout
 		cluster.Timeout = time.Second * config.ConnectTimeout
@@ -36,23 +37,27 @@ func GetCassandra(config domain.CDBConfig) (*Cassandra, error) {
 
 		// TODO: Add authentication
 		// cluster.Authenticator = gocql.PasswordAuthenticator{Username: "Username", Password: "Password"} //replace the username and password fields with their real settings.
-		session, err := cluster.CreateSession()
+		session, err := gocqlx.WrapSession(cluster.CreateSession())
 
 		if err != nil {
 			dbErr = err
 			return
 		}
-
+		log.Info().Msg("Cassandra DB Session created")
+		log.Info().Msg("Creating minerva Keyspace")
 		// create keyspaces
-		err = session.Query("CREATE KEYSPACE IF NOT EXISTS minerva WITH replication = {'class':'SimpleStrategy', 'replication_factor' : 3};").Exec()
+		err = session.ExecStmt("CREATE KEYSPACE IF NOT EXISTS minerva WITH replication = {'class':'SimpleStrategy', 'replication_factor' : 3};")
 		if err != nil {
+			log.Debug().Err(err).Msg("Error")
 			dbErr = err
 			return
 		}
+
+		log.Info().Msg("Keyspace created")
 
 		instance = &Cassandra{
 			cluster: cluster,
-			session: session,
+			session: &session,
 		}
 	})
 
