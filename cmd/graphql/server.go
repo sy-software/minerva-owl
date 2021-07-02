@@ -35,7 +35,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	repo, err := repositories.NewOrgRepo(cassandra)
+	repo, err := repositories.NewOrgRepo(cassandra, &config)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Can't start Cassandra DB Repo:")
 		os.Exit(1)

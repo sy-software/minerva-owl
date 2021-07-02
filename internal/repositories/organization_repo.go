@@ -3,12 +3,14 @@ package repositories
 import (
 	"fmt"
 
-	"github.com/scylladb/gocqlx/table"
+	"github.com/rs/zerolog/log"
+	"github.com/scylladb/gocqlx/v2"
+	"github.com/scylladb/gocqlx/v2/qb"
+	"github.com/scylladb/gocqlx/v2/table"
 	"github.com/sy-software/minerva-owl/internal/core/domain"
-	"github.com/sy-software/minerva-owl/internal/core/ports"
 )
 
-var tableName = "minerva.organization"
+var tableName = "minerva.organizations"
 
 // metadata specifies table name and columns it must be in sync with schema.
 var orgMetadata = table.Metadata{
@@ -23,9 +25,10 @@ var orgTable = table.New(orgMetadata)
 
 type OrgRepo struct {
 	cassandra *Cassandra
+	config    *domain.Config
 }
 
-func NewOrgRepo(cassandra *Cassandra) (*OrgRepo, error) {
+func NewOrgRepo(cassandra *Cassandra, config *domain.Config) (*OrgRepo, error) {
 	query := fmt.Sprintf(
 		"CREATE TABLE IF NOT EXISTS %s (id text, name text, description text, logo text, PRIMARY KEY (id));",
 		tableName,
@@ -37,24 +40,57 @@ func NewOrgRepo(cassandra *Cassandra) (*OrgRepo, error) {
 
 	return &OrgRepo{
 		cassandra: cassandra,
+		config:    config,
 	}, nil
 }
 
-func (memRepo *OrgRepo) All() ([]domain.Organization, error) {
-	return []domain.Organization{}, nil
-}
-func (memRepo *OrgRepo) Get(id string) (domain.Organization, error) {
-	return domain.Organization{}, ports.ErrItemNotFound{
-		Id:    id,
-		Model: "Organization",
+func (repo *OrgRepo) All() ([]domain.Organization, error) {
+	var orgs []domain.Organization
+	stmt, names, err := gocqlx.CompileNamedQueryString(
+		fmt.Sprintf("SELECT * FROM %s LIMIT :limit", tableName),
+	)
+
+	if err != nil {
+		return []domain.Organization{}, err
 	}
+
+	log.Debug().Msgf("Statement: %v Names: %v", stmt, names)
+	q := repo.cassandra.session.
+		Query(stmt, names).BindMap(qb.M{
+		"limit": repo.config.Pagination.PageSize,
+	})
+
+	log.Debug().Msgf("Query: %v", q)
+
+	if err := q.SelectRelease(&orgs); err != nil {
+		log.Debug().Err(err).Msgf("Error in query %v", q)
+		return []domain.Organization{}, err
+	}
+
+	log.Debug().Msgf("Quering values: %d", len(orgs))
+	return orgs, nil
+}
+func (repo *OrgRepo) Get(id string) (domain.Organization, error) {
+	org := domain.Organization{}
+
+	stmt, names := orgTable.Select()
+
+	log.Debug().Msgf("Statement: %v Names: %v", stmt, names)
+	q := repo.cassandra.session.Query(stmt, names).BindMap(qb.M{
+		"id": id,
+	})
+	if err := q.GetRelease(&org); err != nil {
+		return org, err
+	}
+
+	return org, nil
 }
 
-func (memRepo *OrgRepo) Save(entity domain.Organization) error {
-	q := memRepo.cassandra.session.Query(orgTable.Insert()).BindStruct(entity)
+func (repo *OrgRepo) Save(entity domain.Organization) error {
+	q := repo.cassandra.session.Query(orgTable.Insert()).BindStruct(entity)
 	return q.ExecRelease()
 }
 
-func (memRepo *OrgRepo) Delete(id string) error {
+func (repo *OrgRepo) Delete(id string) error {
 	return nil
 }

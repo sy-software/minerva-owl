@@ -26,6 +26,13 @@ type CDBConfig struct {
 	Connections int `json:"connections,omitempty"`
 }
 
+type Pagination struct {
+	// Default page size if no specified
+	PageSize int `json:"pageSize,omitempty"`
+	// Max page size the user can ask
+	MaxPageSize int `json:"maxPageSize,omitempty"`
+}
+
 // Config contains all configuration for this service
 type Config struct {
 	CassandraDB CDBConfig `json:"cassandraDB"`
@@ -33,6 +40,8 @@ type Config struct {
 	Host string `json:"host,omitempty"`
 	// Server bind port default 8080
 	Port string `json:"port,omitempty"`
+	// Default pagination settings
+	Pagination Pagination `json:"pagination,omitempty"`
 }
 
 // LoadConfiguration Loads the configuration object from a json file
@@ -47,6 +56,10 @@ func LoadConfiguration(file string) Config {
 		},
 		Host: "0.0.0.0",
 		Port: "8080",
+		Pagination: Pagination{
+			PageSize:    10,
+			MaxPageSize: 100,
+		},
 	}
 	configFile, err := os.Open(file)
 

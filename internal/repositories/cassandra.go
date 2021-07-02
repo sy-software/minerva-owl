@@ -26,7 +26,8 @@ func GetCassandra(config domain.CDBConfig) (*Cassandra, error) {
 		log.Info().Msg("Initializing Cassandra DB connection")
 		cluster := gocql.NewCluster(config.Host)
 		cluster.Port = config.Port
-		cluster.Consistency = gocql.Any
+		// TODO: Set the right value for the server
+		cluster.Consistency = gocql.One
 		cluster.ProtoVersion = 4
 		cluster.ConnectTimeout = time.Second * config.ConnectTimeout
 		cluster.Timeout = time.Second * config.ConnectTimeout
