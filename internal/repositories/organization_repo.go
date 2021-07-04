@@ -17,7 +17,6 @@ var orgMetadata = table.Metadata{
 	Name:    tableName,
 	Columns: []string{"id", "name", "description", "logo"},
 	PartKey: []string{"id"},
-	SortKey: []string{"name"},
 }
 
 // orgTable allows for simple CRUD operations based on orgMetadata.
@@ -28,6 +27,7 @@ type OrgRepo struct {
 	config    *domain.Config
 }
 
+// NewOrgRepo creates an instances of the Organization repo with Cassandra DB
 func NewOrgRepo(cassandra *Cassandra, config *domain.Config) (*OrgRepo, error) {
 	query := fmt.Sprintf(
 		"CREATE TABLE IF NOT EXISTS %s (id text, name text, description text, logo text, PRIMARY KEY (id));",
@@ -70,6 +70,7 @@ func (repo *OrgRepo) All() ([]domain.Organization, error) {
 	log.Debug().Msgf("Quering values: %d", len(orgs))
 	return orgs, nil
 }
+
 func (repo *OrgRepo) Get(id string) (domain.Organization, error) {
 	org := domain.Organization{}
 
@@ -92,5 +93,13 @@ func (repo *OrgRepo) Save(entity domain.Organization) error {
 }
 
 func (repo *OrgRepo) Delete(id string) error {
-	return nil
+	q := repo.cassandra.session.Query(orgTable.Delete()).BindMap(qb.M{
+		"id": id,
+	})
+
+	err := q.ExecRelease()
+
+	log.Debug().Err(err).Msg("Delete error: ")
+
+	return err
 }

@@ -9,5 +9,9 @@
         "connections" : 2
     },
     "host" : "127.0.0.1",
-    "port" : 8080
+    "port" : 8080,
+    "pagination": {
+        "pageSize": 10,
+        "maxPageSize": 100
+    }
 }
