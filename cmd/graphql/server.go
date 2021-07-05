@@ -43,7 +43,7 @@ func main() {
 
 	defer cassandra.Close()
 
-	service := service.NewOrgService(repo)
+	service := service.NewOrgService(repo, config)
 	handlerInstance := handlers.NewOrgGraphqlHandler(*service)
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{

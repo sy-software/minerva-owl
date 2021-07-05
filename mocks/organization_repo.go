@@ -9,8 +9,18 @@ type OrgInMemoryRepo struct {
 	DummyData []domain.Organization
 }
 
-func (memRepo *OrgInMemoryRepo) All() ([]domain.Organization, error) {
-	return memRepo.DummyData, nil
+func (memRepo *OrgInMemoryRepo) List(skip int, limit int) ([]domain.Organization, error) {
+	if skip >= len(memRepo.DummyData) {
+		return []domain.Organization{}, nil
+	}
+
+	available := len(memRepo.DummyData) - skip
+	capLimit := limit
+	if limit > available {
+		capLimit = available
+	}
+	// log.Debug().Msgf("MemRepo: Skip = %d, Limit = %d, Cap Limit = %d, available = %d", skip, limit, capLimit, available)
+	return memRepo.DummyData[skip : skip+capLimit], nil
 }
 func (memRepo *OrgInMemoryRepo) Get(id string) (domain.Organization, error) {
 	for _, item := range memRepo.DummyData {

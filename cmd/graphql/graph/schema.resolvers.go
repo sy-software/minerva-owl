@@ -22,8 +22,8 @@ func (r *mutationResolver) DeleteOrganization(ctx context.Context, id string) (*
 	return r.Handler.Delete(id)
 }
 
-func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organization, error) {
-	return r.Handler.Query()
+func (r *queryResolver) Organizations(ctx context.Context, page *int, pageSize *int) ([]*model.Organization, error) {
+	return r.Handler.Query(page, pageSize)
 }
 
 func (r *queryResolver) Organization(ctx context.Context, id string) (*model.Organization, error) {

@@ -4,6 +4,7 @@ import (
 	"github.com/sy-software/minerva-owl/cmd/graphql/graph/model"
 	"github.com/sy-software/minerva-owl/internal/core/domain"
 	"github.com/sy-software/minerva-owl/internal/core/service"
+	"github.com/sy-software/minerva-owl/internal/utils"
 )
 
 type OrganizationGraphqlHandler struct {
@@ -17,7 +18,7 @@ func NewOrgGraphqlHandler(service service.OrganizationService) *OrganizationGrap
 }
 
 func (handler *OrganizationGraphqlHandler) Create(name string, description string, logo *string) (*model.Organization, error) {
-	validatedLogo := nilCoalescing(logo, "")
+	validatedLogo := utils.CoalesceStr(logo, "")
 
 	org, err := handler.service.Create(name, description, validatedLogo)
 
@@ -45,9 +46,9 @@ func (handler *OrganizationGraphqlHandler) Update(id string, name *string, descr
 
 	new := domain.Organization{
 		Id:          id,
-		Name:        nilCoalescing(name, current.Name),
-		Description: nilCoalescing(description, current.Description),
-		Logo:        nilCoalescing(logo, current.Logo),
+		Name:        utils.CoalesceStr(name, current.Name),
+		Description: utils.CoalesceStr(description, current.Description),
+		Logo:        utils.CoalesceStr(logo, current.Logo),
 	}
 
 	output, err := handler.service.Update(new)
@@ -59,8 +60,8 @@ func (handler *OrganizationGraphqlHandler) Update(id string, name *string, descr
 	return domainToGraphQLModel(&output), nil
 }
 
-func (handler *OrganizationGraphqlHandler) Query() ([]*model.Organization, error) {
-	all, err := handler.service.All()
+func (handler *OrganizationGraphqlHandler) Query(page *int, pageSize *int) ([]*model.Organization, error) {
+	all, err := handler.service.List(page, pageSize)
 
 	if err != nil {
 		return []*model.Organization{}, err
@@ -107,13 +108,5 @@ func domainToGraphQLModel(source *domain.Organization) *model.Organization {
 		Name:        source.Name,
 		Description: source.Description,
 		Logo:        &source.Logo,
-	}
-}
-
-func nilCoalescing(value *string, fallback string) string {
-	if value != nil {
-		return *value
-	} else {
-		return fallback
 	}
 }

@@ -44,7 +44,7 @@ func NewOrgRepo(cassandra *Cassandra, config *domain.Config) (*OrgRepo, error) {
 	}, nil
 }
 
-func (repo *OrgRepo) All() ([]domain.Organization, error) {
+func (repo *OrgRepo) List(skip int, limit int) ([]domain.Organization, error) {
 	var orgs []domain.Organization
 	stmt, names, err := gocqlx.CompileNamedQueryString(
 		fmt.Sprintf("SELECT * FROM %s LIMIT :limit", tableName),
@@ -88,6 +88,7 @@ func (repo *OrgRepo) Get(id string) (domain.Organization, error) {
 }
 
 func (repo *OrgRepo) Save(entity domain.Organization) error {
+	log.Debug().Msgf("Updating: %v", entity)
 	q := repo.cassandra.session.Query(orgTable.Insert()).BindStruct(entity)
 	return q.ExecRelease()
 }

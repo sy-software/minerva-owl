@@ -16,7 +16,7 @@ func (err ErrItemNotFound) Error() string {
 }
 
 type OrganizationRepo interface {
-	All() ([]domain.Organization, error)
+	List(skip int, limit int) ([]domain.Organization, error)
 	Get(id string) (domain.Organization, error)
 
 	Save(entity domain.Organization) error

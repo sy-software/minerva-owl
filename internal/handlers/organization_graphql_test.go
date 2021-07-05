@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"regexp"
+	"strconv"
 	"testing"
 
 	"github.com/sy-software/minerva-owl/cmd/graphql/graph/model"
@@ -10,22 +11,6 @@ import (
 	"github.com/sy-software/minerva-owl/internal/core/service"
 	"github.com/sy-software/minerva-owl/mocks"
 )
-
-func TestNilCoalescing(t *testing.T) {
-	defaultValue := "default"
-	got := nilCoalescing(nil, defaultValue)
-
-	if defaultValue != got {
-		t.Errorf("Expected: %q Got: %q", defaultValue, got)
-	}
-
-	expected := "expected"
-	got = nilCoalescing(&expected, defaultValue)
-
-	if got != expected {
-		t.Errorf("Expected: %q Got: %q", defaultValue, got)
-	}
-}
 
 func TestDomainToGraphQLModel(t *testing.T) {
 	logo := "myLogo"
@@ -68,7 +53,7 @@ func TestCreateOperation(t *testing.T) {
 			DummyData: []domain.Organization{},
 		}
 
-		orgService := service.NewOrgService(repo)
+		orgService := service.NewOrgService(repo, domain.DefaultConfig())
 		handlerInstance := NewOrgGraphqlHandler(*orgService)
 
 		expected := model.Organization{
@@ -110,7 +95,7 @@ func TestCreateOperation(t *testing.T) {
 			DummyData: []domain.Organization{},
 		}
 
-		orgService := service.NewOrgService(repo)
+		orgService := service.NewOrgService(repo, domain.DefaultConfig())
 		handlerInstance := NewOrgGraphqlHandler(*orgService)
 
 		logo := "logo"
@@ -174,10 +159,10 @@ func TestQueryOperations(t *testing.T) {
 			},
 		}
 
-		orgService := service.NewOrgService(repo)
+		orgService := service.NewOrgService(repo, domain.DefaultConfig())
 		handlerInstance := NewOrgGraphqlHandler(*orgService)
 
-		got, err := handlerInstance.Query()
+		got, err := handlerInstance.Query(nil, nil)
 
 		if err != nil {
 			t.Errorf("Unexpected error: %v", err)
@@ -219,7 +204,7 @@ func TestQueryOperations(t *testing.T) {
 			Description: "originalDescription2",
 			Logo:        &logo,
 		}
-		orgService := service.NewOrgService(repo)
+		orgService := service.NewOrgService(repo, domain.DefaultConfig())
 		handlerInstance := NewOrgGraphqlHandler(*orgService)
 
 		got, err := handlerInstance.QueryById(expected.ID)
@@ -246,7 +231,7 @@ func TestQueryOperations(t *testing.T) {
 			DummyData: []domain.Organization{},
 		}
 
-		orgService := service.NewOrgService(repo)
+		orgService := service.NewOrgService(repo, domain.DefaultConfig())
 		handlerInstance := NewOrgGraphqlHandler(*orgService)
 
 		_, err := handlerInstance.QueryById("myid")
@@ -258,6 +243,168 @@ func TestQueryOperations(t *testing.T) {
 		_, ok := err.(ports.ErrItemNotFound)
 		if !ok {
 			t.Errorf("Expected error of type ErrItemNotFound got: %T", err)
+		}
+	})
+}
+
+func TestQueryPagination(t *testing.T) {
+	dummydata := make([]domain.Organization, 20)
+
+	for i := 0; i < 20; i++ {
+		str := strconv.Itoa(i)
+		dummydata[i] = domain.Organization{
+			Id:          str,
+			Name:        "name " + str,
+			Description: "description " + str,
+			Logo:        "logo " + str,
+		}
+	}
+
+	repo := mocks.OrgInMemoryRepo{
+		DummyData: dummydata,
+	}
+
+	t.Run("Get organizations with page size", func(t *testing.T) {
+		maxPageSize := 10
+		pageSize := 5
+
+		orgService := service.NewOrgService(&repo, domain.Config{
+			Pagination: domain.Pagination{
+				PageSize:    pageSize,
+				MaxPageSize: maxPageSize,
+			},
+		})
+
+		handlerInstance := NewOrgGraphqlHandler(*orgService)
+
+		got, err := handlerInstance.Query(nil, &pageSize)
+
+		if err != nil {
+			t.Errorf("Got error while getting all organizations: %v", err)
+		}
+
+		if len(got) != pageSize {
+			t.Errorf("Expected %d elements got %d", pageSize, len(got))
+		}
+
+		if got[0].ID != dummydata[0].Id {
+			t.Errorf("Expected first item id to be: %v got: %v", dummydata[0], got[0])
+		}
+	})
+
+	t.Run("Get Organizations second page", func(t *testing.T) {
+		maxPageSize := 10
+		pageSize := 5
+		page := 2
+
+		orgService := service.NewOrgService(&repo, domain.Config{
+			Pagination: domain.Pagination{
+				PageSize:    pageSize,
+				MaxPageSize: maxPageSize,
+			},
+		})
+
+		handlerInstance := NewOrgGraphqlHandler(*orgService)
+
+		got, err := handlerInstance.Query(&page, &pageSize)
+
+		if err != nil {
+			t.Errorf("Got error while getting all organizations: %v", err)
+		}
+
+		if len(got) != pageSize {
+			t.Errorf("Expected %d elements got %d", pageSize, len(got))
+		}
+
+		startIndex := (page - 1) * pageSize
+		if got[0].ID != dummydata[startIndex].Id {
+			t.Errorf("Expected first item id to be: %v got: %v", dummydata[startIndex], got[0])
+		}
+	})
+
+	t.Run("Get Organizations last page", func(t *testing.T) {
+		maxPageSize := 10
+		pageSize := 9
+		page := 3
+
+		orgService := service.NewOrgService(&repo, domain.Config{
+			Pagination: domain.Pagination{
+				PageSize:    pageSize,
+				MaxPageSize: maxPageSize,
+			},
+		})
+
+		handlerInstance := NewOrgGraphqlHandler(*orgService)
+
+		got, err := handlerInstance.Query(&page, &pageSize)
+
+		if err != nil {
+			t.Errorf("Got error while getting all organizations: %v", err)
+		}
+
+		expectedSize := len(dummydata) - ((page - 1) * pageSize)
+		if len(got) != expectedSize {
+			t.Errorf("Expected %d elements got %d", expectedSize, len(got))
+		}
+
+		startIndex := (page - 1) * pageSize
+		if got[0].ID != dummydata[startIndex].Id {
+			t.Errorf("Expected first item id to be: %v got: %v", dummydata[startIndex], got[0])
+		}
+	})
+
+	t.Run("Get non existing page", func(t *testing.T) {
+		maxPageSize := 10
+		pageSize := 5
+		page := 100
+
+		orgService := service.NewOrgService(&repo, domain.Config{
+			Pagination: domain.Pagination{
+				PageSize:    pageSize,
+				MaxPageSize: maxPageSize,
+			},
+		})
+
+		handlerInstance := NewOrgGraphqlHandler(*orgService)
+
+		got, err := handlerInstance.Query(&page, &pageSize)
+
+		if err != nil {
+			t.Errorf("Got error while getting all organizations: %v", err)
+		}
+
+		if len(got) != 0 {
+			t.Errorf("Expected %d elements got %d", pageSize, len(got))
+		}
+	})
+
+	t.Run("Pass invalid values for pageSize and page", func(t *testing.T) {
+		pageSize := -5
+		page := -2
+
+		expectedPageSize := 5
+
+		orgService := service.NewOrgService(&repo, domain.Config{
+			Pagination: domain.Pagination{
+				PageSize:    expectedPageSize,
+				MaxPageSize: 10,
+			},
+		})
+
+		handlerInstance := NewOrgGraphqlHandler(*orgService)
+
+		got, err := handlerInstance.Query(&page, &pageSize)
+
+		if err != nil {
+			t.Errorf("Got error while getting all organizations: %v", err)
+		}
+
+		if len(got) != expectedPageSize {
+			t.Errorf("Expected %d elements got %d", pageSize, len(got))
+		}
+
+		if got[0].ID != dummydata[0].Id {
+			t.Errorf("Expected first item id to be: %v got: %v", dummydata[0], got[0])
 		}
 	})
 }
@@ -275,7 +422,7 @@ func TestUpdateOperation(t *testing.T) {
 			},
 		}
 
-		orgService := service.NewOrgService(repo)
+		orgService := service.NewOrgService(repo, domain.DefaultConfig())
 		handlerInstance := NewOrgGraphqlHandler(*orgService)
 
 		logo := "logo"
@@ -321,7 +468,7 @@ func TestUpdateOperation(t *testing.T) {
 			},
 		}
 
-		orgService := service.NewOrgService(repo)
+		orgService := service.NewOrgService(repo, domain.DefaultConfig())
 		handlerInstance := NewOrgGraphqlHandler(*orgService)
 
 		logo := "logo"
@@ -360,7 +507,7 @@ func TestUpdateOperation(t *testing.T) {
 			DummyData: []domain.Organization{},
 		}
 
-		orgService := service.NewOrgService(repo)
+		orgService := service.NewOrgService(repo, domain.DefaultConfig())
 		handlerInstance := NewOrgGraphqlHandler(*orgService)
 
 		logo := "logo"
@@ -397,7 +544,7 @@ func TestDeleteOperaton(t *testing.T) {
 			},
 		}
 
-		orgService := service.NewOrgService(repo)
+		orgService := service.NewOrgService(repo, domain.DefaultConfig())
 		handlerInstance := NewOrgGraphqlHandler(*orgService)
 
 		_, err := handlerInstance.Delete("myid")
@@ -416,7 +563,7 @@ func TestDeleteOperaton(t *testing.T) {
 			DummyData: []domain.Organization{},
 		}
 
-		orgService := service.NewOrgService(repo)
+		orgService := service.NewOrgService(repo, domain.DefaultConfig())
 		handlerInstance := NewOrgGraphqlHandler(*orgService)
 
 		_, err := handlerInstance.Delete("id")

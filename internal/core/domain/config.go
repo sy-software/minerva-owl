@@ -44,9 +44,8 @@ type Config struct {
 	Pagination Pagination `json:"pagination,omitempty"`
 }
 
-// LoadConfiguration Loads the configuration object from a json file
-func LoadConfiguration(file string) Config {
-	config := Config{
+func DefaultConfig() Config {
+	return Config{
 		CassandraDB: CDBConfig{
 			Host:           "127.0.0.1",
 			Port:           9042,
@@ -61,6 +60,11 @@ func LoadConfiguration(file string) Config {
 			MaxPageSize: 100,
 		},
 	}
+}
+
+// LoadConfiguration Loads the configuration object from a json file
+func LoadConfiguration(file string) Config {
+	config := DefaultConfig()
 	configFile, err := os.Open(file)
 
 	if err != nil {

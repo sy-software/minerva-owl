@@ -2,6 +2,7 @@ package service
 
 import (
 	"regexp"
+	"strconv"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -22,6 +23,7 @@ func TestOrganizationIsCreated(t *testing.T) {
 
 	service := OrganizationService{
 		repository: &repo,
+		config:     domain.DefaultConfig(),
 	}
 
 	created, err := service.Create(expected.Name, expected.Description, expected.Logo)
@@ -82,10 +84,16 @@ func TestOrganizationIsRead(t *testing.T) {
 
 	service := OrganizationService{
 		repository: &repo,
+		config: domain.Config{
+			Pagination: domain.Pagination{
+				PageSize:    10,
+				MaxPageSize: 100,
+			},
+		},
 	}
 
-	t.Run("Get All Organizations", func(t *testing.T) {
-		got, err := service.All()
+	t.Run("Get a list of Organizations", func(t *testing.T) {
+		got, err := service.List(nil, nil)
 
 		if err != nil {
 			t.Errorf("Got error while getting all organizations: %v", err)
@@ -130,6 +138,173 @@ func TestOrganizationIsRead(t *testing.T) {
 	})
 }
 
+func TestPagination(t *testing.T) {
+	dummydata := make([]domain.Organization, 20)
+
+	for i := 0; i < 20; i++ {
+		str := strconv.Itoa(i)
+		dummydata[i] = domain.Organization{
+			Id:          str,
+			Name:        "name " + str,
+			Description: "description " + str,
+			Logo:        "logo " + str,
+		}
+	}
+
+	repo := mocks.OrgInMemoryRepo{
+		DummyData: dummydata,
+	}
+
+	t.Run("Get Organizations with Page Size", func(t *testing.T) {
+		maxPageSize := 10
+		pageSize := 5
+
+		service := OrganizationService{
+			repository: &repo,
+			config: domain.Config{
+				Pagination: domain.Pagination{
+					PageSize:    pageSize,
+					MaxPageSize: maxPageSize,
+				},
+			},
+		}
+
+		got, err := service.List(nil, &pageSize)
+
+		if err != nil {
+			t.Errorf("Got error while getting all organizations: %v", err)
+		}
+
+		if len(got) != pageSize {
+			t.Errorf("Expected %d elements got %d", pageSize, len(got))
+		}
+
+		if !cmp.Equal(got[0], dummydata[0]) {
+			t.Errorf("Expected first item id to be: %v got: %v", dummydata[0], got[0])
+		}
+	})
+
+	t.Run("Get Organizations second page", func(t *testing.T) {
+		maxPageSize := 10
+		pageSize := 5
+		page := 2
+
+		service := OrganizationService{
+			repository: &repo,
+			config: domain.Config{
+				Pagination: domain.Pagination{
+					PageSize:    pageSize,
+					MaxPageSize: maxPageSize,
+				},
+			},
+		}
+
+		got, err := service.List(&page, &pageSize)
+
+		if err != nil {
+			t.Errorf("Got error while getting all organizations: %v", err)
+		}
+
+		if len(got) != pageSize {
+			t.Errorf("Expected %d elements got %d", pageSize, len(got))
+		}
+
+		startIndex := (page - 1) * pageSize
+		if !cmp.Equal(got[0], dummydata[startIndex]) {
+			t.Errorf("Expected first item id to be: %v got: %v", dummydata[startIndex], got[0])
+		}
+	})
+
+	t.Run("Get Organizations last page", func(t *testing.T) {
+		maxPageSize := 10
+		pageSize := 9
+		page := 3
+
+		service := OrganizationService{
+			repository: &repo,
+			config: domain.Config{
+				Pagination: domain.Pagination{
+					PageSize:    pageSize,
+					MaxPageSize: maxPageSize,
+				},
+			},
+		}
+
+		got, err := service.List(&page, &pageSize)
+
+		if err != nil {
+			t.Errorf("Got error while getting all organizations: %v", err)
+		}
+
+		expectedSize := len(dummydata) - ((page - 1) * pageSize)
+		if len(got) != expectedSize {
+			t.Errorf("Expected %d elements got %d", expectedSize, len(got))
+		}
+
+		startIndex := (page - 1) * pageSize
+		if !cmp.Equal(got[0], dummydata[startIndex]) {
+			t.Errorf("Expected first item id to be: %v got: %v", dummydata[startIndex], got[0])
+		}
+	})
+
+	t.Run("Get non existing page", func(t *testing.T) {
+		maxPageSize := 10
+		pageSize := 5
+		page := 100
+
+		service := OrganizationService{
+			repository: &repo,
+			config: domain.Config{
+				Pagination: domain.Pagination{
+					PageSize:    pageSize,
+					MaxPageSize: maxPageSize,
+				},
+			},
+		}
+
+		got, err := service.List(&page, &pageSize)
+
+		if err != nil {
+			t.Errorf("Got error while getting all organizations: %v", err)
+		}
+
+		if len(got) != 0 {
+			t.Errorf("Expected %d elements got %d", pageSize, len(got))
+		}
+	})
+
+	t.Run("Pass invalid values for pageSize and page", func(t *testing.T) {
+		pageSize := -5
+		page := -2
+
+		expectedPageSize := 5
+
+		service := OrganizationService{
+			repository: &repo,
+			config: domain.Config{
+				Pagination: domain.Pagination{
+					PageSize:    expectedPageSize,
+					MaxPageSize: 10,
+				},
+			},
+		}
+
+		got, err := service.List(&page, &pageSize)
+
+		if err != nil {
+			t.Errorf("Got error while getting all organizations: %v", err)
+		}
+
+		if len(got) != expectedPageSize {
+			t.Errorf("Expected %d elements got %d", pageSize, len(got))
+		}
+
+		if !cmp.Equal(got[0], dummydata[0]) {
+			t.Errorf("Expected first item id to be: %v got: %v", dummydata[0], got[0])
+		}
+	})
+}
+
 func TestOrganizationIsUpdated(t *testing.T) {
 	base := []domain.Organization{
 		{
@@ -167,6 +342,7 @@ func TestOrganizationIsUpdated(t *testing.T) {
 
 	service := OrganizationService{
 		repository: &repo,
+		config:     domain.DefaultConfig(),
 	}
 
 	got, err := service.Update(expected[0])
@@ -219,6 +395,7 @@ func TestOrganizationIsDeleted(t *testing.T) {
 
 	service := OrganizationService{
 		repository: &repo,
+		config:     domain.DefaultConfig(),
 	}
 
 	err := service.Delete("1", false)
@@ -227,7 +404,7 @@ func TestOrganizationIsDeleted(t *testing.T) {
 		t.Errorf("Got error while getting updating organizations: %v", err)
 	}
 
-	all, err := service.All()
+	all, err := service.List(nil, nil)
 
 	if len(all) != len(expected) {
 		t.Errorf("Excted to have %d items got %d", len(expected), len(all))
