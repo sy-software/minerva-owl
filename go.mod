@@ -11,4 +11,5 @@ require (
 	github.com/rs/zerolog v1.23.0
 	github.com/scylladb/gocqlx/v2 v2.4.0
 	github.com/vektah/gqlparser/v2 v2.1.0
+	go.mongodb.org/mongo-driver v1.5.4 // indirect
 )

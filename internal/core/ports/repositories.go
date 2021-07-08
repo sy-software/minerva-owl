@@ -19,7 +19,8 @@ type OrganizationRepo interface {
 	List(skip int, limit int) ([]domain.Organization, error)
 	Get(id string) (domain.Organization, error)
 
-	Save(entity domain.Organization) error
+	Create(entity domain.Organization) (string, error)
+	Update(entity domain.Organization) error
 
 	Delete(id string) error
 }

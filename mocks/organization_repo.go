@@ -1,6 +1,8 @@
 package mocks
 
 import (
+	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 	"github.com/sy-software/minerva-owl/internal/core/domain"
 	"github.com/sy-software/minerva-owl/internal/core/ports"
 )
@@ -35,7 +37,17 @@ func (memRepo *OrgInMemoryRepo) Get(id string) (domain.Organization, error) {
 	}
 }
 
-func (memRepo *OrgInMemoryRepo) Save(entity domain.Organization) error {
+func (memRepo *OrgInMemoryRepo) Create(entity domain.Organization) (string, error) {
+	entity.Id = uuid.New().String()
+	log.Debug().Msgf("creating an id: %q", entity.Id)
+	return entity.Id, memRepo.save(entity)
+}
+
+func (memRepo *OrgInMemoryRepo) Update(entity domain.Organization) error {
+	return memRepo.save(entity)
+}
+
+func (memRepo *OrgInMemoryRepo) save(entity domain.Organization) error {
 	for index, item := range memRepo.DummyData {
 		if item.Id == entity.Id {
 			memRepo.DummyData[index] = entity

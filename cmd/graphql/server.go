@@ -13,7 +13,7 @@ import (
 	"github.com/sy-software/minerva-owl/internal/core/domain"
 	"github.com/sy-software/minerva-owl/internal/core/service"
 	"github.com/sy-software/minerva-owl/internal/handlers"
-	"github.com/sy-software/minerva-owl/internal/repositories"
+	"github.com/sy-software/minerva-owl/internal/repositories/mongodb"
 )
 
 const defaultConfigFile = "./config.json"
@@ -28,20 +28,20 @@ func main() {
 	}
 
 	config := domain.LoadConfiguration(configFile)
-	cassandra, err := repositories.GetCassandra(config.CassandraDB)
+	mdbInstance, err := mongodb.GetMongoDB(config.MongoDBConfig)
 
 	if err != nil {
 		log.Error().Stack().Err(err).Msg("Can't initialize Cassandra DB:")
 		os.Exit(1)
 	}
 
-	repo, err := repositories.NewOrgRepo(cassandra, &config)
+	repo, err := mongodb.NewOrgRepo(mdbInstance, &config)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Can't start Cassandra DB Repo:")
 		os.Exit(1)
 	}
 
-	defer cassandra.Close()
+	defer mdbInstance.Close()
 
 	service := service.NewOrgService(repo, config)
 	handlerInstance := handlers.NewOrgGraphqlHandler(*service)

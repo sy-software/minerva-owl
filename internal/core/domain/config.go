@@ -26,6 +26,22 @@ type CDBConfig struct {
 	Connections int `json:"connections,omitempty"`
 }
 
+// MDBConfig holds Mongo DB related configurations
+type MDBConfig struct {
+	// Database host, default: 127.0.0.1
+	Host string `json:"host,omitempty"`
+	// Database port, default: 27017
+	Port int `json:"port,omitempty"`
+	// Database username. Omit if the DB have no authentication
+	Username string `json:"username,omitempty"`
+	// Database password. Omit if the DB have no authentication
+	Password string `json:"password,omitempty"`
+	// Statements execution timeout, default: 10 seconds
+	Timeout time.Duration `json:"timeout,omitempty"`
+	// Database connection timeout, default: 10 seconds
+	ConnectTimeout time.Duration `json:"connectTimeout,omitempty"`
+}
+
 type Pagination struct {
 	// Default page size if no specified
 	PageSize int `json:"pageSize,omitempty"`
@@ -35,7 +51,8 @@ type Pagination struct {
 
 // Config contains all configuration for this service
 type Config struct {
-	CassandraDB CDBConfig `json:"cassandraDB"`
+	CassandraDB   CDBConfig `json:"cassandraDB"`
+	MongoDBConfig MDBConfig `json:"mongoDB"`
 	// Server bind IP default 0.0.0.0
 	Host string `json:"host,omitempty"`
 	// Server bind port default 8080
@@ -52,6 +69,12 @@ func DefaultConfig() Config {
 			Timeout:        10,
 			ConnectTimeout: 10,
 			Connections:    2,
+		},
+		MongoDBConfig: MDBConfig{
+			Host:           "127.0.0.1",
+			Port:           27017,
+			Timeout:        10,
+			ConnectTimeout: 10,
 		},
 		Host: "0.0.0.0",
 		Port: "8080",

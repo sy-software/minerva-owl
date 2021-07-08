@@ -4,8 +4,6 @@ import (
 	"github.com/sy-software/minerva-owl/internal/core/domain"
 	"github.com/sy-software/minerva-owl/internal/core/ports"
 	"github.com/sy-software/minerva-owl/internal/utils"
-
-	"github.com/google/uuid"
 )
 
 type OrganizationService struct {
@@ -46,12 +44,13 @@ func (srv *OrganizationService) Create(name string, description string, logo str
 		Logo:        logo,
 	}
 
-	entity.Id = uuid.New().String()
-	return entity, srv.repository.Save(entity)
+	newId, err := srv.repository.Create(entity)
+	entity.Id = newId
+	return entity, err
 }
 
 func (srv *OrganizationService) Update(entity domain.Organization) (domain.Organization, error) {
-	return entity, srv.repository.Save(entity)
+	return entity, srv.repository.Update(entity)
 }
 
 func (srv *OrganizationService) Delete(id string, hard bool) error {

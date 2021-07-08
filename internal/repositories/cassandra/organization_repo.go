@@ -1,8 +1,9 @@
-package repositories
+package cassandra
 
 import (
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/scylladb/gocqlx/v2"
 	"github.com/scylladb/gocqlx/v2/qb"
@@ -87,7 +88,19 @@ func (repo *OrgRepo) Get(id string) (domain.Organization, error) {
 	return org, nil
 }
 
-func (repo *OrgRepo) Save(entity domain.Organization) error {
+func (repo *OrgRepo) Create(entity domain.Organization) (string, error) {
+	if len(entity.Id) == 0 {
+		entity.Id = uuid.New().String()
+	}
+
+	return entity.Id, repo.save(entity)
+}
+
+func (repo *OrgRepo) Update(entity domain.Organization) error {
+	return repo.save(entity)
+}
+
+func (repo *OrgRepo) save(entity domain.Organization) error {
 	log.Debug().Msgf("Updating: %v", entity)
 	q := repo.cassandra.session.Query(orgTable.Insert()).BindStruct(entity)
 	return q.ExecRelease()
