@@ -37,7 +37,8 @@ func GetMongoDB(config domain.MDBConfig) (*MongoDB, error) {
 			dbErr = err
 		}
 
-		ctx, _ := context.WithTimeout(context.Background(), config.ConnectTimeout*time.Second)
+		ctx, cancelFn := context.WithTimeout(context.Background(), config.ConnectTimeout*time.Second)
+		defer cancelFn()
 		err = client.Connect(ctx)
 
 		if err != nil {
