@@ -31,7 +31,12 @@ func GetMongoDB(config domain.MDBConfig) (*MongoDB, error) {
 		}
 
 		uri += fmt.Sprintf("%s:%d/", config.Host, config.Port)
-		client, err := mongo.NewClient(options.Client().ApplyURI(uri))
+
+		clientOpts := options.Client()
+		maxPoolSize := uint64(config.MaxPoolSize)
+		clientOpts.MaxPoolSize = &maxPoolSize
+
+		client, err := mongo.NewClient(clientOpts.ApplyURI(uri))
 
 		if err != nil {
 			dbErr = err

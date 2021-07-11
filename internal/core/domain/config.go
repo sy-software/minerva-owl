@@ -40,6 +40,8 @@ type MDBConfig struct {
 	Timeout time.Duration `json:"timeout,omitempty"`
 	// Database connection timeout, default: 10 seconds
 	ConnectTimeout time.Duration `json:"connectTimeout,omitempty"`
+	// MaxPoolSize tells how many connections are established with the database
+	MaxPoolSize int `json:"maxPoolSize,omitempty"`
 }
 
 type Pagination struct {
@@ -75,6 +77,7 @@ func DefaultConfig() Config {
 			Port:           27017,
 			Timeout:        10,
 			ConnectTimeout: 10,
+			MaxPoolSize:    50,
 		},
 		Host: "0.0.0.0",
 		Port: "8080",

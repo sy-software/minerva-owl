@@ -8,6 +8,15 @@
         "connectTimeout" : 10,
         "connections" : 2
     },
+    "mongoDB" : {
+        "host" : "127.0.0.1",
+        "port" : 27017,
+        "username" : "user",
+        "password" : "password",
+        "timeout" : 10,
+        "connectTimeout" : 10,
+        "maxPoolSize": 50
+    },
     "host" : "127.0.0.1",
     "port" : 8080,
     "pagination": {
