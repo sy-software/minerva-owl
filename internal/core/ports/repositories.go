@@ -18,6 +18,11 @@ func (err ErrItemNotFound) Error() string {
 	return fmt.Sprintf("Can't find %v with Id: %v", err.Model, err.Id)
 }
 
+type Filter struct {
+	Name  string
+	Value interface{}
+}
+
 // OrganizationRepo is the commong interface for repository providers for the Organization model
 type OrganizationRepo interface {
 	// List returns a single page of items
