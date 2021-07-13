@@ -23,6 +23,19 @@ type Filter struct {
 	Value interface{}
 }
 
+type Repository interface {
+	// List returns a single page of items
+	List(collection string, results interface{}, skip int, limit int, filters ...Filter) error
+	// Get returns a single item filter by id
+	Get(collection string, id string, result interface{}) error
+	// Create saves a new item into the repository and returns the assigned Id
+	Create(collection string, entity interface{}) (string, error)
+	// Update looks for an existing item and update the values
+	Update(collection string, id string, entity interface{}) error
+	// Delete removes the item with the specified id from the repo
+	Delete(collection string, id string) error
+}
+
 // OrganizationRepo is the commong interface for repository providers for the Organization model
 type OrganizationRepo interface {
 	// List returns a single page of items
