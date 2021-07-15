@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
 	"github.com/sy-software/minerva-owl/internal/core/ports"
 )
 
@@ -17,7 +16,6 @@ func (repo *MemRepo) List(collection string, results interface{}, skip int, limi
 	colData := repo.Data[collection]
 
 	if skip >= len(colData) {
-		log.Debug().Msgf("Skip %d must be less than available data (%d)", skip, len(colData))
 		return nil
 	}
 
@@ -26,7 +24,7 @@ func (repo *MemRepo) List(collection string, results interface{}, skip int, limi
 	if limit > available {
 		capLimit = available
 	}
-	log.Debug().Msgf("MemRepo: Skip = %d, Limit = %d, Cap Limit = %d, available = %d", skip, limit, capLimit, available)
+
 	resultsRaw := colData[skip : skip+capLimit]
 
 	resultsPtr := reflect.ValueOf(results)

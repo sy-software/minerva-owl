@@ -5,7 +5,7 @@ package domain
 // An organization witholds: Areas, Teams, Users, Software components
 // and all other entities for a single client inside minerva
 type Organization struct {
-	Id          string `bson:"_id,omitempty" json:"_id,omitempty"`
+	Id          string `bson:"_id,omitempty" json:"id,omitempty"`
 	Name        string `bson:"name,omitempty" json:"name,omitempty"`
 	Description string `bson:"description,omitempty" json:"description,omitempty"`
 	Logo        string `bson:"logo,omitempty" json:"logo,omitempty"`
@@ -13,7 +13,7 @@ type Organization struct {
 
 // Area represents a subdivision of an organization such as: Engineering, Design, etc.
 type Area struct {
-	Id           string `bson:"_id,omitempty" json:"_id,omitempty"`
+	Id           string `bson:"_id,omitempty" json:"id,omitempty"`
 	Name         string `bson:"name,omitempty" json:"name,omitempty"`
 	Description  string `bson:"description,omitempty" json:"description,omitempty"`
 	Organization string `bson:"organization,omitempty" json:"organization,omitempty"`
@@ -27,7 +27,7 @@ type Area struct {
 // team members
 // TODO: Should a team belong to a single Area?
 type Team struct {
-	Id           string   `bson:"_id,omitempty" json:"_id,omitempty"`
+	Id           string   `bson:"_id,omitempty" json:"id,omitempty"`
 	Name         string   `bson:"name,omitempty" json:"name,omitempty"`
 	Description  string   `bson:"description,omitempty" json:"description,omitempty"`
 	Organization string   `bson:"organization,omitempty" json:"organization,omitempty"`
@@ -39,7 +39,7 @@ type Team struct {
 
 // Tech is a definition of tools, languages, frameworks, etc. Used within an Organization
 type Teach struct {
-	Id           string `bson:"_id,omitempty" json:"_id,omitempty"`
+	Id           string `bson:"_id,omitempty" json:"id,omitempty"`
 	Name         string `bson:"name,omitempty" json:"name,omitempty"`
 	Description  string `bson:"description,omitempty" json:"description,omitempty"`
 	Organization string `bson:"organization,omitempty" json:"organization,omitempty"`

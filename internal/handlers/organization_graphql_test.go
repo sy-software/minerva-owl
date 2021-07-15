@@ -49,11 +49,15 @@ func TestDomainToGraphQLModel(t *testing.T) {
 
 func TestCreateOperation(t *testing.T) {
 	t.Run("Create an Organization without logo", func(t *testing.T) {
-		repo := &mocks.OrgInMemoryRepo{
-			DummyData: []domain.Organization{},
+		data := map[string][]map[string]interface{}{
+			"organizations": {},
 		}
 
-		orgService := service.NewOrgService(repo, domain.DefaultConfig())
+		repo := mocks.MemRepo{
+			Data: data,
+		}
+
+		orgService := service.NewOrgService(&repo, domain.DefaultConfig())
 		handlerInstance := NewOrgGraphqlHandler(*orgService)
 
 		expected := model.Organization{
@@ -85,17 +89,21 @@ func TestCreateOperation(t *testing.T) {
 			t.Errorf("Expected.Logo to be \"\" got: %q", *got.Logo)
 		}
 
-		if len(repo.DummyData) != 1 {
-			t.Errorf("Expected repository to have 1 element got: %d", len(repo.DummyData))
+		if len(repo.Data["organizations"]) != 1 {
+			t.Errorf("Expected repository to have 1 element got: %d", len(repo.Data["organizations"]))
 		}
 	})
 
 	t.Run("Create an Organization with logo", func(t *testing.T) {
-		repo := &mocks.OrgInMemoryRepo{
-			DummyData: []domain.Organization{},
+		data := map[string][]map[string]interface{}{
+			"organizations": {},
 		}
 
-		orgService := service.NewOrgService(repo, domain.DefaultConfig())
+		repo := mocks.MemRepo{
+			Data: data,
+		}
+
+		orgService := service.NewOrgService(&repo, domain.DefaultConfig())
 		handlerInstance := NewOrgGraphqlHandler(*orgService)
 
 		logo := "logo"
@@ -128,38 +136,43 @@ func TestCreateOperation(t *testing.T) {
 			t.Errorf("Expected.Logo to be: %q got: %q", *expected.Logo, *got.Logo)
 		}
 
-		if len(repo.DummyData) != 1 {
-			t.Errorf("Expected repository to have 1 element got: %d", len(repo.DummyData))
+		if len(repo.Data["organizations"]) != 1 {
+			t.Errorf("Expected repository to have 1 element got: %d", len(repo.Data["organizations"]))
 		}
 	})
 }
 
 func TestQueryOperations(t *testing.T) {
 	t.Run("Query all items", func(t *testing.T) {
-		repo := &mocks.OrgInMemoryRepo{
-			DummyData: []domain.Organization{
-				{
-					Id:          "myid1",
-					Name:        "originalName",
-					Description: "originalDescription",
-					Logo:        "",
-				},
-				{
-					Id:          "myid2",
-					Name:        "originalName",
-					Description: "originalDescription",
-					Logo:        "",
-				},
-				{
-					Id:          "myid3",
-					Name:        "originalName",
-					Description: "originalDescription",
-					Logo:        "",
-				},
+		base := []map[string]interface{}{
+			{
+				"id":          "myid1",
+				"name":        "originalName",
+				"description": "originalDescription",
+				"logo":        "",
+			},
+			{
+				"id":          "myid2",
+				"name":        "originalName",
+				"description": "originalDescription",
+				"logo":        "",
+			},
+			{
+				"id":          "myid3",
+				"name":        "originalName",
+				"description": "originalDescription",
+				"logo":        "",
 			},
 		}
+		data := map[string][]map[string]interface{}{
+			"organizations": base,
+		}
 
-		orgService := service.NewOrgService(repo, domain.DefaultConfig())
+		repo := mocks.MemRepo{
+			Data: data,
+		}
+
+		orgService := service.NewOrgService(&repo, domain.DefaultConfig())
 		handlerInstance := NewOrgGraphqlHandler(*orgService)
 
 		got, err := handlerInstance.Query(nil, nil)
@@ -168,33 +181,38 @@ func TestQueryOperations(t *testing.T) {
 			t.Errorf("Unexpected error: %v", err)
 		}
 
-		if len(got) != len(repo.DummyData) {
-			t.Errorf("Expected: %d elements got: %d", len(repo.DummyData), len(got))
+		if len(got) != len(repo.Data["organizations"]) {
+			t.Errorf("Expected: %d elements got: %d", len(repo.Data["organizations"]), len(got))
 		}
 	})
 
 	t.Run("Query items by Id", func(t *testing.T) {
-		repo := &mocks.OrgInMemoryRepo{
-			DummyData: []domain.Organization{
-				{
-					Id:          "myid1",
-					Name:        "originalName",
-					Description: "originalDescription",
-					Logo:        "",
-				},
-				{
-					Id:          "myid2",
-					Name:        "originalName2",
-					Description: "originalDescription2",
-					Logo:        "",
-				},
-				{
-					Id:          "myid3",
-					Name:        "originalName",
-					Description: "originalDescription",
-					Logo:        "",
-				},
+		base := []map[string]interface{}{
+			{
+				"id":          "myid1",
+				"name":        "originalName",
+				"description": "originalDescription",
+				"logo":        "",
 			},
+			{
+				"id":          "myid2",
+				"name":        "originalName2",
+				"description": "originalDescription2",
+				"logo":        "",
+			},
+			{
+				"id":          "myid3",
+				"name":        "originalName3",
+				"description": "originalDescription3",
+				"logo":        "",
+			},
+		}
+		data := map[string][]map[string]interface{}{
+			"organizations": base,
+		}
+
+		repo := mocks.MemRepo{
+			Data: data,
 		}
 
 		logo := ""
@@ -204,7 +222,7 @@ func TestQueryOperations(t *testing.T) {
 			Description: "originalDescription2",
 			Logo:        &logo,
 		}
-		orgService := service.NewOrgService(repo, domain.DefaultConfig())
+		orgService := service.NewOrgService(&repo, domain.DefaultConfig())
 		handlerInstance := NewOrgGraphqlHandler(*orgService)
 
 		got, err := handlerInstance.QueryById(expected.ID)
@@ -227,11 +245,15 @@ func TestQueryOperations(t *testing.T) {
 	})
 
 	t.Run("Query a non-existing id", func(t *testing.T) {
-		repo := &mocks.OrgInMemoryRepo{
-			DummyData: []domain.Organization{},
+		data := map[string][]map[string]interface{}{
+			"organizations": {},
 		}
 
-		orgService := service.NewOrgService(repo, domain.DefaultConfig())
+		repo := mocks.MemRepo{
+			Data: data,
+		}
+
+		orgService := service.NewOrgService(&repo, domain.DefaultConfig())
 		handlerInstance := NewOrgGraphqlHandler(*orgService)
 
 		_, err := handlerInstance.QueryById("myid")
@@ -249,6 +271,7 @@ func TestQueryOperations(t *testing.T) {
 
 func TestQueryPagination(t *testing.T) {
 	dummydata := make([]domain.Organization, 20)
+	dummyDict := make([]map[string]interface{}, 20)
 
 	for i := 0; i < 20; i++ {
 		str := strconv.Itoa(i)
@@ -258,10 +281,21 @@ func TestQueryPagination(t *testing.T) {
 			Description: "description " + str,
 			Logo:        "logo " + str,
 		}
+
+		dummyDict[i] = map[string]interface{}{
+			"id":          str,
+			"name":        "name " + str,
+			"description": "description " + str,
+			"logo":        "logo " + str,
+		}
 	}
 
-	repo := mocks.OrgInMemoryRepo{
-		DummyData: dummydata,
+	data := map[string][]map[string]interface{}{
+		"organizations": dummyDict,
+	}
+
+	repo := mocks.MemRepo{
+		Data: data,
 	}
 
 	t.Run("Get organizations with page size", func(t *testing.T) {
@@ -411,18 +445,23 @@ func TestQueryPagination(t *testing.T) {
 
 func TestUpdateOperation(t *testing.T) {
 	t.Run("Partial Update", func(t *testing.T) {
-		repo := &mocks.OrgInMemoryRepo{
-			DummyData: []domain.Organization{
-				{
-					Id:          "myid",
-					Name:        "originalName",
-					Description: "originalDescription",
-					Logo:        "",
-				},
+		base := []map[string]interface{}{
+			{
+				"id":          "myid",
+				"name":        "originalName",
+				"description": "originalDescription",
+				"logo":        "",
 			},
 		}
+		data := map[string][]map[string]interface{}{
+			"organizations": base,
+		}
 
-		orgService := service.NewOrgService(repo, domain.DefaultConfig())
+		repo := mocks.MemRepo{
+			Data: data,
+		}
+
+		orgService := service.NewOrgService(&repo, domain.DefaultConfig())
 		handlerInstance := NewOrgGraphqlHandler(*orgService)
 
 		logo := "logo"
@@ -451,24 +490,29 @@ func TestUpdateOperation(t *testing.T) {
 			t.Errorf("Expected.Logo to be: %q got: %q", *expected.Logo, *got.Logo)
 		}
 
-		if len(repo.DummyData) != 1 {
-			t.Errorf("Expected repository to have 1 element got: %d", len(repo.DummyData))
+		if len(repo.Data["organizations"]) != 1 {
+			t.Errorf("Expected repository to have 1 element got: %d", len(repo.Data["organizations"]))
 		}
 	})
 
 	t.Run("Complete Update", func(t *testing.T) {
-		repo := &mocks.OrgInMemoryRepo{
-			DummyData: []domain.Organization{
-				{
-					Id:          "myid",
-					Name:        "originalName",
-					Description: "originalDescription",
-					Logo:        "",
-				},
+		base := []map[string]interface{}{
+			{
+				"id":          "myid",
+				"name":        "originalName",
+				"description": "originalDescription",
+				"logo":        "",
 			},
 		}
+		data := map[string][]map[string]interface{}{
+			"organizations": base,
+		}
 
-		orgService := service.NewOrgService(repo, domain.DefaultConfig())
+		repo := mocks.MemRepo{
+			Data: data,
+		}
+
+		orgService := service.NewOrgService(&repo, domain.DefaultConfig())
 		handlerInstance := NewOrgGraphqlHandler(*orgService)
 
 		logo := "logo"
@@ -497,17 +541,21 @@ func TestUpdateOperation(t *testing.T) {
 			t.Errorf("Expected.Logo to be: %q got: %q", *expected.Logo, *got.Logo)
 		}
 
-		if len(repo.DummyData) != 1 {
-			t.Errorf("Expected repository to have 1 element got: %d", len(repo.DummyData))
+		if len(repo.Data["organizations"]) != 1 {
+			t.Errorf("Expected repository to have 1 element got: %d", len(repo.Data["organizations"]))
 		}
 	})
 
 	t.Run("Update a non-existing id", func(t *testing.T) {
-		repo := &mocks.OrgInMemoryRepo{
-			DummyData: []domain.Organization{},
+		data := map[string][]map[string]interface{}{
+			"organizations": {},
 		}
 
-		orgService := service.NewOrgService(repo, domain.DefaultConfig())
+		repo := mocks.MemRepo{
+			Data: data,
+		}
+
+		orgService := service.NewOrgService(&repo, domain.DefaultConfig())
 		handlerInstance := NewOrgGraphqlHandler(*orgService)
 
 		logo := "logo"
@@ -533,18 +581,23 @@ func TestUpdateOperation(t *testing.T) {
 
 func TestDeleteOperaton(t *testing.T) {
 	t.Run("Delete an item", func(t *testing.T) {
-		repo := &mocks.OrgInMemoryRepo{
-			DummyData: []domain.Organization{
-				{
-					Id:          "myid",
-					Name:        "originalName",
-					Description: "originalDescription",
-					Logo:        "",
-				},
+		base := []map[string]interface{}{
+			{
+				"id":          "myid",
+				"name":        "originalName",
+				"description": "originalDescription",
+				"logo":        "",
 			},
 		}
+		data := map[string][]map[string]interface{}{
+			"organizations": base,
+		}
 
-		orgService := service.NewOrgService(repo, domain.DefaultConfig())
+		repo := mocks.MemRepo{
+			Data: data,
+		}
+
+		orgService := service.NewOrgService(&repo, domain.DefaultConfig())
 		handlerInstance := NewOrgGraphqlHandler(*orgService)
 
 		_, err := handlerInstance.Delete("myid")
@@ -553,17 +606,21 @@ func TestDeleteOperaton(t *testing.T) {
 			t.Errorf("Unexpected error: %v", err)
 		}
 
-		if len(repo.DummyData) != 0 {
-			t.Errorf("Expected 0 items in repo got: %d", len(repo.DummyData))
+		if len(repo.Data["organizations"]) != 0 {
+			t.Errorf("Expected 0 items in repo got: %d", len(repo.Data["organizations"]))
 		}
 	})
 
 	t.Run("Delete a non-existing id", func(t *testing.T) {
-		repo := &mocks.OrgInMemoryRepo{
-			DummyData: []domain.Organization{},
+		data := map[string][]map[string]interface{}{
+			"organizations": {},
 		}
 
-		orgService := service.NewOrgService(repo, domain.DefaultConfig())
+		repo := mocks.MemRepo{
+			Data: data,
+		}
+
+		orgService := service.NewOrgService(&repo, domain.DefaultConfig())
 		handlerInstance := NewOrgGraphqlHandler(*orgService)
 
 		_, err := handlerInstance.Delete("id")

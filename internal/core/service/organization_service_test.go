@@ -17,8 +17,12 @@ func TestOrganizationIsCreated(t *testing.T) {
 		Logo:        "logo",
 	}
 
-	repo := mocks.OrgInMemoryRepo{
-		DummyData: []domain.Organization{},
+	data := map[string][]map[string]interface{}{
+		"organizations": {},
+	}
+
+	repo := mocks.MemRepo{
+		Data: data,
 	}
 
 	service := OrganizationService{
@@ -78,8 +82,27 @@ func TestOrganizationIsRead(t *testing.T) {
 		},
 	}
 
-	repo := mocks.OrgInMemoryRepo{
-		DummyData: expected,
+	dummyData := []map[string]interface{}{
+		{
+			"id":          "1",
+			"name":        "name 1",
+			"description": "description 1",
+			"logo":        "logo 1",
+		},
+		{
+			"id":          "2",
+			"name":        "name 2",
+			"description": "description 2",
+			"logo":        "logo 2",
+		},
+	}
+
+	data := map[string][]map[string]interface{}{
+		"organizations": dummyData,
+	}
+
+	repo := mocks.MemRepo{
+		Data: data,
 	}
 
 	service := OrganizationService{
@@ -126,7 +149,7 @@ func TestOrganizationIsRead(t *testing.T) {
 	})
 
 	t.Run("Get an Organization by a not existing Id", func(t *testing.T) {
-		expectedError := "Can't find Organization with Id: not_exists_id"
+		expectedError := "Can't find organizations with Id: not_exists_id"
 		_, err := service.Get("not_exists_id")
 		if err == nil {
 			t.Errorf("Expected 'ErrItemNotFound' error got: %v", err)
@@ -140,6 +163,7 @@ func TestOrganizationIsRead(t *testing.T) {
 
 func TestPagination(t *testing.T) {
 	dummydata := make([]domain.Organization, 20)
+	dummyDict := make([]map[string]interface{}, 20)
 
 	for i := 0; i < 20; i++ {
 		str := strconv.Itoa(i)
@@ -149,10 +173,21 @@ func TestPagination(t *testing.T) {
 			Description: "description " + str,
 			Logo:        "logo " + str,
 		}
+
+		dummyDict[i] = map[string]interface{}{
+			"id":          str,
+			"name":        "name " + str,
+			"description": "description " + str,
+			"logo":        "logo " + str,
+		}
 	}
 
-	repo := mocks.OrgInMemoryRepo{
-		DummyData: dummydata,
+	data := map[string][]map[string]interface{}{
+		"organizations": dummyDict,
+	}
+
+	repo := mocks.MemRepo{
+		Data: data,
 	}
 
 	t.Run("Get Organizations with Page Size", func(t *testing.T) {
@@ -306,18 +341,18 @@ func TestPagination(t *testing.T) {
 }
 
 func TestOrganizationIsUpdated(t *testing.T) {
-	base := []domain.Organization{
+	base := []map[string]interface{}{
 		{
-			Id:          "1",
-			Name:        "name 1",
-			Description: "description 1",
-			Logo:        "logo 1",
+			"id":          "1",
+			"name":        "name 1",
+			"description": "description 1",
+			"logo":        "logo 1",
 		},
 		{
-			Id:          "2",
-			Name:        "name 2",
-			Description: "description 2",
-			Logo:        "logo 2",
+			"id":          "2",
+			"name":        "name 2",
+			"description": "description 2",
+			"logo":        "logo 2",
 		},
 	}
 
@@ -336,8 +371,12 @@ func TestOrganizationIsUpdated(t *testing.T) {
 		},
 	}
 
-	repo := mocks.OrgInMemoryRepo{
-		DummyData: base,
+	data := map[string][]map[string]interface{}{
+		"organizations": base,
+	}
+
+	repo := mocks.MemRepo{
+		Data: data,
 	}
 
 	service := OrganizationService{
@@ -365,18 +404,18 @@ func TestOrganizationIsUpdated(t *testing.T) {
 }
 
 func TestOrganizationIsDeleted(t *testing.T) {
-	base := []domain.Organization{
+	base := []map[string]interface{}{
 		{
-			Id:          "1",
-			Name:        "name",
-			Description: "description",
-			Logo:        "logo",
+			"id":          "1",
+			"name":        "name",
+			"description": "description",
+			"logo":        "logo",
 		},
 		{
-			Id:          "2",
-			Name:        "name",
-			Description: "description",
-			Logo:        "logo",
+			"id":          "2",
+			"name":        "name",
+			"description": "description",
+			"logo":        "logo",
 		},
 	}
 
@@ -389,8 +428,12 @@ func TestOrganizationIsDeleted(t *testing.T) {
 		},
 	}
 
-	repo := mocks.OrgInMemoryRepo{
-		DummyData: base,
+	data := map[string][]map[string]interface{}{
+		"organizations": base,
+	}
+
+	repo := mocks.MemRepo{
+		Data: data,
 	}
 
 	service := OrganizationService{
