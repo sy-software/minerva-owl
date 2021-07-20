@@ -114,16 +114,16 @@ func TestCreateOperations(t *testing.T) {
 		if !created.CreateDate.After(now) && !created.CreateDate.Equal(now) {
 			t.Errorf(
 				"CreateDate must be after or equal to baseline now: %d got %d",
-				now.Unix(),
-				created.CreateDate.Unix(),
+				now.UnixNano(),
+				created.CreateDate.UnixNano(),
 			)
 		}
 
 		if !created.UpdateDate.After(now) && !created.UpdateDate.Equal(now) {
 			t.Errorf(
 				"UpdateDate must be after or equal to baseline now: %d got %d",
-				now.Unix(),
-				created.UpdateDate.Unix(),
+				now.UnixNano(),
+				created.UpdateDate.UnixNano(),
 			)
 		}
 
@@ -322,17 +322,17 @@ func TestUpdateOperations(t *testing.T) {
 
 		if got.CreateDate != yesterday {
 			t.Errorf(
-				"CreateDate must be equals to now: %d got %d",
-				yesterday.Unix(),
-				got.CreateDate.Unix(),
+				"CreateDate must be equals to yesterday: %d got %d",
+				yesterday.UnixNano(),
+				got.CreateDate.UnixNano(),
 			)
 		}
 
 		if !got.UpdateDate.Equal(now) {
 			t.Errorf(
 				"UpdateDate must be after baseline now: %d got %d",
-				now.Unix(),
-				got.UpdateDate.Unix(),
+				now.UnixNano(),
+				got.UpdateDate.UnixNano(),
 			)
 		}
 
