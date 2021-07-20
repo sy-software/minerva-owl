@@ -320,7 +320,7 @@ func TestUpdateOperations(t *testing.T) {
 			)
 		}
 
-		if got.CreateDate != yesterday {
+		if got.CreateDate.Equal(yesterday) {
 			t.Errorf(
 				"CreateDate must be equals to yesterday: %d got %d",
 				yesterday.UnixNano(),
