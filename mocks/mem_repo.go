@@ -8,6 +8,8 @@ import (
 	"github.com/sy-software/minerva-owl/internal/core/ports"
 )
 
+const ID_REGEX = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+
 type MemRepo struct {
 	Data map[string][]map[string]interface{}
 }
@@ -30,7 +32,6 @@ func (repo *MemRepo) List(collection string, results interface{}, skip int, limi
 	resultsPtr := reflect.ValueOf(results)
 	resultsVal := resultsPtr.Elem()
 	elementType := resultsVal.Type().Elem()
-
 	for _, r := range resultsRaw {
 		newElement := reflect.New(elementType).Elem()
 		jsonbody, err := json.Marshal(r)
@@ -101,9 +102,15 @@ func (repo *MemRepo) Create(collection string, entity interface{}) (string, erro
 	return newId, err
 }
 
-func (repo *MemRepo) Update(collection string, id string, entity interface{}) error {
+func (repo *MemRepo) Update(collection string, id string, entity interface{}, omit ...string) error {
 	colData := repo.Data[collection]
-	for i, item := range colData {
+
+	omitMap := map[string]bool{}
+	for _, v := range omit {
+		omitMap[v] = true
+	}
+
+	for _, item := range colData {
 		if item["id"] == id {
 			var jsonMap map[string]interface{}
 			doc, err := json.Marshal(entity)
@@ -113,7 +120,15 @@ func (repo *MemRepo) Update(collection string, id string, entity interface{}) er
 			}
 
 			json.Unmarshal(doc, &jsonMap)
-			colData[i] = jsonMap
+
+			for k, v := range jsonMap {
+				_, shouldOmit := omitMap[k]
+				if k != "id" && !shouldOmit {
+					item[k] = v
+				}
+
+			}
+			// colData[i] = jsonMap
 		}
 	}
 	return nil

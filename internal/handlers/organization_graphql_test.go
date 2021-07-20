@@ -72,7 +72,7 @@ func TestCreateOperation(t *testing.T) {
 			t.Errorf("Unexpected error: %v", err)
 		}
 
-		match, err := regexp.MatchString(service.ID_REGEX, got.ID)
+		match, err := regexp.MatchString(mocks.ID_REGEX, got.ID)
 		if !match || err != nil {
 			t.Errorf("ID is not V4 UUID got: %q with error: %v", got.ID, err)
 		}
@@ -119,7 +119,7 @@ func TestCreateOperation(t *testing.T) {
 			t.Errorf("Unexpected error: %v", err)
 		}
 
-		match, err := regexp.MatchString(service.ID_REGEX, got.ID)
+		match, err := regexp.MatchString(mocks.ID_REGEX, got.ID)
 		if !match || err != nil {
 			t.Errorf("ID is not V4 UUID got: %q with error: %v", got.ID, err)
 		}

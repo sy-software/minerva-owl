@@ -6,7 +6,7 @@ import (
 	"github.com/sy-software/minerva-owl/internal/utils"
 )
 
-const collectionName = "organizations"
+const orgCollectionName = "organizations"
 
 type OrganizationService struct {
 	repository ports.Repository
@@ -33,14 +33,14 @@ func (srv *OrganizationService) List(page *int, pageSize *int) ([]domain.Organiz
 	}
 
 	results := []domain.Organization{}
-	err := srv.repository.List(collectionName, &results, pageVal*pageSizeVal, pageSizeVal)
+	err := srv.repository.List(orgCollectionName, &results, pageVal*pageSizeVal, pageSizeVal)
 
 	return results, err
 }
 
 func (srv *OrganizationService) Get(id string) (domain.Organization, error) {
 	result := domain.Organization{}
-	err := srv.repository.Get(collectionName, id, &result)
+	err := srv.repository.Get(orgCollectionName, id, &result)
 	return result, err
 }
 
@@ -51,15 +51,15 @@ func (srv *OrganizationService) Create(name string, description string, logo str
 		Logo:        logo,
 	}
 
-	newId, err := srv.repository.Create(collectionName, &entity)
+	newId, err := srv.repository.Create(orgCollectionName, &entity)
 	entity.Id = newId
 	return entity, err
 }
 
 func (srv *OrganizationService) Update(entity domain.Organization) (domain.Organization, error) {
-	return entity, srv.repository.Update(collectionName, entity.Id, &entity)
+	return entity, srv.repository.Update(orgCollectionName, entity.Id, &entity)
 }
 
 func (srv *OrganizationService) Delete(id string, hard bool) error {
-	return srv.repository.Delete(collectionName, id)
+	return srv.repository.Delete(orgCollectionName, id)
 }

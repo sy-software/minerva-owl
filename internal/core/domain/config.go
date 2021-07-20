@@ -51,6 +51,11 @@ type Pagination struct {
 	MaxPageSize int `json:"maxPageSize,omitempty"`
 }
 
+type KeyList struct {
+	// For auth related encryptions
+	Auth string `json:"host,omitempty"`
+}
+
 // Config contains all configuration for this service
 type Config struct {
 	CassandraDB   CDBConfig `json:"cassandraDB"`
@@ -61,6 +66,7 @@ type Config struct {
 	Port string `json:"port,omitempty"`
 	// Default pagination settings
 	Pagination Pagination `json:"pagination,omitempty"`
+	Keys       KeyList    `json:"keys,omitempty"`
 }
 
 func DefaultConfig() Config {

@@ -37,3 +37,32 @@ type AreaService interface {
 	// and can be later restored.
 	Delete(id string, hard bool) error
 }
+
+// AuthService is a common interface for a service provider for User entity
+type UserService interface {
+	// List returns a single page of items
+	List(page *int, pageSize *int) ([]domain.User, error)
+	// List returns a single page of items filtered by their role
+	ListByRole(role string, page *int, pageSize *int) ([]domain.User, error)
+	// Get returns a single item filter by id
+	Get(id string) (domain.User, error)
+	// Get returns a single item filter by their username
+	GetByUsername(username string) (domain.User, error)
+	// Create saves a new organization item into the repository
+	Create(
+		name string,
+		username string,
+		picture string,
+		role string,
+		provider string,
+		tokenID string,
+		status string,
+	) (domain.User, error)
+	// Update looks for an existing item and update the values
+	Update(entity domain.User) (domain.User, error)
+	// Delete removes the item with the specified id from the repo.
+	//
+	// If the hard parameter is false the value is only soft deleted
+	// and can be later restored.
+	Delete(id string, hard bool) error
+}

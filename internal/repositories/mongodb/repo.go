@@ -105,7 +105,7 @@ func (repo *MongoRepo) Create(collection string, entity interface{}) (string, er
 	return fmt.Sprintf("%v", result.InsertedID), nil
 }
 
-func (repo *MongoRepo) Update(collection string, id string, entity interface{}) error {
+func (repo *MongoRepo) Update(collection string, id string, entity interface{}, omit ...string) error {
 	log.Debug().Msgf("Saving: %v", entity)
 	ctx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelFn()
@@ -116,7 +116,7 @@ func (repo *MongoRepo) Update(collection string, id string, entity interface{}) 
 		return err
 	}
 
-	bsonDoc, err := toBSONDoc(entity, true)
+	bsonDoc, err := toBSONDoc(entity, omit...)
 	if err != nil {
 		return err
 	}
@@ -155,7 +155,7 @@ func (repo *MongoRepo) Delete(collection string, id string) error {
 	return err
 }
 
-func toBSONDoc(v interface{}, omityId bool) (bson.D, error) {
+func toBSONDoc(v interface{}, omit ...string) (bson.D, error) {
 	data, err := bson.Marshal(v)
 	if err != nil {
 		return bson.D{}, nil
@@ -164,14 +164,20 @@ func toBSONDoc(v interface{}, omityId bool) (bson.D, error) {
 	var doc bson.D
 	err = bson.Unmarshal(data, &doc)
 
-	if !omityId || err != nil {
+	if len(omit) == 0 || err != nil {
 		return doc, err
+	}
+
+	omitMap := map[string]bool{}
+	for _, v := range omit {
+		omitMap[v] = true
 	}
 
 	filtered := bson.D{}
 
 	for _, field := range doc {
-		if field.Key != "_id" {
+		_, shouldOmit := omitMap[field.Key]
+		if field.Key != "_id" && !shouldOmit {
 			filtered = append(filtered, field)
 		}
 	}

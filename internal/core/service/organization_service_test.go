@@ -36,7 +36,7 @@ func TestOrganizationIsCreated(t *testing.T) {
 		t.Errorf("Item should be created without errors: %v", err)
 	}
 
-	match, err := regexp.MatchString(ID_REGEX, created.Id)
+	match, err := regexp.MatchString(mocks.ID_REGEX, created.Id)
 	if !match || err != nil {
 		t.Errorf("ID is not V4 UUID got: %q with error: %v", created.Id, err)
 	}

@@ -10,8 +10,9 @@ import (
 type Companion interface{}
 
 type Pokemon struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
+	Id         string `json:"id"`
+	Name       string `json:"name"`
+	Generation int    `json:"generation,omitempty"`
 }
 
 // This is a little redundant but I need a way to check
@@ -197,6 +198,55 @@ func TestMemRepo(t *testing.T) {
 
 		if !cmp.Equal(got, expected) {
 			t.Errorf("Expected result: %+v. Got: %+v", expected, got)
+		}
+	})
+
+	t.Run("Test update omit fields", func(t *testing.T) {
+		expected := Pokemon{
+			Id:         "2",
+			Name:       "Ivysaur",
+			Generation: 10,
+		}
+
+		pokemons := []map[string]interface{}{
+			{
+				"id":   "1",
+				"name": "Bulbasaur",
+			},
+			{
+				"id":         "2",
+				"name":       "ivysaur",
+				"generation": 1,
+			},
+			{
+				"id":   "3",
+				"name": "Venosaur",
+			},
+		}
+
+		data := map[string][]map[string]interface{}{
+			"pokemons": pokemons,
+		}
+
+		repo := MemRepo{
+			Data: data,
+		}
+
+		err := repo.Update("pokemons", "2", expected, "generation")
+
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+
+		got := Pokemon{}
+		err = repo.Get("pokemons", "2", &got)
+
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+
+		if got.Generation == expected.Generation {
+			t.Errorf("Expected result: 1. Got: %+v", got)
 		}
 	})
 

@@ -30,8 +30,8 @@ type Repository interface {
 	Get(collection string, id string, result interface{}) error
 	// Create saves a new item into the repository and returns the assigned Id
 	Create(collection string, entity interface{}) (string, error)
-	// Update looks for an existing item and update the values
-	Update(collection string, id string, entity interface{}) error
+	// Update looks for an existing item and update the values omiting the fields in omit
+	Update(collection string, id string, entity interface{}, omit ...string) error
 	// Delete removes the item with the specified id from the repo
 	Delete(collection string, id string) error
 }
