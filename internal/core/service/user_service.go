@@ -88,7 +88,7 @@ func (srv *UserService) Create(
 }
 
 func (srv *UserService) Update(entity domain.User) (domain.User, error) {
-	entity.UpdateDate = utils.UnixNow()
+	entity.UpdateDate = utils.UnixUTCNow()
 	return entity, srv.repository.Update(userCollectionName, entity.Id, &entity, "createDate")
 }
 

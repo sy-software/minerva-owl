@@ -19,7 +19,7 @@ func TestCreateOperations(t *testing.T) {
 	}
 
 	t.Run("Test User is created", func(t *testing.T) {
-		now := utils.UnixNow()
+		now := utils.UnixUTCNow()
 
 		expected := domain.User{
 			Name:       "Tony Stark",
@@ -231,7 +231,7 @@ func TestUpdateOperations(t *testing.T) {
 
 	tokenId := "myTokenId"
 	encrypted, _ := utils.AES256Encrypt(authKey, tokenId)
-	now := time.Unix(time.Now().Unix(), 0)
+	now := utils.UnixUTCNow()
 	yesterday := now.Add(-24 * time.Hour)
 	t.Run("Test user is updated", func(t *testing.T) {
 		dummyData := []map[string]interface{}{
@@ -320,11 +320,11 @@ func TestUpdateOperations(t *testing.T) {
 			)
 		}
 
-		if got.CreateDate.Equal(yesterday) {
+		if !got.CreateDate.Equal(yesterday) {
 			t.Errorf(
-				"CreateDate must be equals to yesterday: %d got %d",
-				yesterday.UnixNano(),
-				got.CreateDate.UnixNano(),
+				"CreateDate must be equals to yesterday: %q got %q",
+				yesterday,
+				got.CreateDate,
 			)
 		}
 
