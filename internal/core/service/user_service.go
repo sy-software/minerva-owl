@@ -21,19 +21,10 @@ func NewUserService(repo ports.Repository, config domain.Config) *UserService {
 }
 
 func (srv *UserService) List(page *int, pageSize *int) ([]domain.User, error) {
-	pageVal := utils.CoalesceInt(page, 1) - 1
-	pageSizeVal := utils.CoalesceInt(pageSize, srv.config.Pagination.PageSize)
-
-	if pageSizeVal > srv.config.Pagination.MaxPageSize || pageSizeVal <= 0 {
-		pageSizeVal = srv.config.Pagination.PageSize
-	}
-
-	if pageVal < 0 {
-		pageVal = 0
-	}
+	_, pageSizeVal, skip := pagination(page, pageSize, srv.config)
 
 	results := []domain.User{}
-	err := srv.repository.List(userCollectionName, &results, pageVal*pageSizeVal, pageSizeVal)
+	err := srv.repository.List(userCollectionName, &results, skip, pageSizeVal)
 
 	return results, err
 }

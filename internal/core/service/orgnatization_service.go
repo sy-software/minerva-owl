@@ -3,7 +3,6 @@ package service
 import (
 	"github.com/sy-software/minerva-owl/internal/core/domain"
 	"github.com/sy-software/minerva-owl/internal/core/ports"
-	"github.com/sy-software/minerva-owl/internal/utils"
 )
 
 const orgCollectionName = "organizations"
@@ -21,19 +20,9 @@ func NewOrgService(repo ports.Repository, config domain.Config) *OrganizationSer
 }
 
 func (srv *OrganizationService) List(page *int, pageSize *int) ([]domain.Organization, error) {
-	pageVal := utils.CoalesceInt(page, 1) - 1
-	pageSizeVal := utils.CoalesceInt(pageSize, srv.config.Pagination.PageSize)
-
-	if pageSizeVal > srv.config.Pagination.MaxPageSize || pageSizeVal <= 0 {
-		pageSizeVal = srv.config.Pagination.PageSize
-	}
-
-	if pageVal < 0 {
-		pageVal = 0
-	}
-
 	results := []domain.Organization{}
-	err := srv.repository.List(orgCollectionName, &results, pageVal*pageSizeVal, pageSizeVal)
+	_, pageSizeVal, skip := pagination(page, pageSize, srv.config)
+	err := srv.repository.List(orgCollectionName, &results, skip, pageSizeVal)
 
 	return results, err
 }
