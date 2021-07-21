@@ -89,6 +89,24 @@ func (srv *UserService) Create(
 
 func (srv *UserService) Update(entity domain.User) (domain.User, error) {
 	entity.UpdateDate = utils.UnixUTCNow()
+
+	current, err := srv.Get(entity.Id)
+
+	if err != nil {
+		return entity, err
+	}
+
+	// TODO: Perform this operation without a Get
+	if current.TokenID != entity.TokenID {
+		encryptedToken, err := utils.AES256Encrypt(srv.config.Keys.Auth, entity.TokenID)
+
+		if err != nil {
+			return entity, err
+		}
+
+		entity.TokenID = encryptedToken
+	}
+
 	return entity, srv.repository.Update(userCollectionName, entity.Id, &entity, "createDate")
 }
 

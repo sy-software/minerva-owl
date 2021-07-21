@@ -230,7 +230,9 @@ func TestUpdateOperations(t *testing.T) {
 	}
 
 	tokenId := "myTokenId"
+	newTokenId := "newTokenId"
 	encrypted, _ := utils.AES256Encrypt(authKey, tokenId)
+	newTokenEncrypted, _ := utils.AES256Encrypt(authKey, newTokenId)
 	now := utils.UnixUTCNow()
 	yesterday := now.Add(-24 * time.Hour)
 	t.Run("Test user is updated", func(t *testing.T) {
@@ -266,7 +268,7 @@ func TestUpdateOperations(t *testing.T) {
 			Username:   "CapAmerica",
 			Name:       "Sam Wilson",
 			Picture:    "",
-			TokenID:    encrypted,
+			TokenID:    newTokenId,
 			CreateDate: now,
 			UpdateDate: now,
 			Status:     "active",
@@ -312,11 +314,12 @@ func TestUpdateOperations(t *testing.T) {
 			)
 		}
 
-		if got.TokenID != expected.TokenID {
+		decryptedToken, _ := utils.AES256Decrypt(authKey, got.TokenID)
+		if decryptedToken != newTokenId {
 			t.Errorf(
 				"TokenID was not assigned expected: %q got: %q",
-				expected.Provider,
-				got.Provider,
+				newTokenEncrypted,
+				got.TokenID,
 			)
 		}
 
@@ -341,6 +344,140 @@ func TestUpdateOperations(t *testing.T) {
 				"Status was not assigned expected: %q got: %q",
 				expected.Status,
 				got.Status,
+			)
+		}
+	})
+
+	t.Run("Test update a non-existing id", func(t *testing.T) {
+		dummyData := []map[string]interface{}{
+			{
+				"id":         "1",
+				"username":   "CapAmerica",
+				"name":       "Steve Rogers",
+				"picture":    "",
+				"tokenID":    encrypted,
+				"createDate": yesterday,
+				"updateDate": yesterday,
+				"status":     "active",
+			},
+			{
+				"id":       "2",
+				"username": "other",
+			},
+		}
+
+		data := map[string][]map[string]interface{}{
+			"users": dummyData,
+		}
+
+		repo := mocks.MemRepo{
+			Data: data,
+		}
+
+		service := NewUserService(&repo, config)
+
+		expected := domain.User{
+			Id: "3",
+		}
+
+		_, err := service.Update(expected)
+
+		if err == nil {
+			t.Errorf("Expected error got nil")
+		}
+
+		_, ok := err.(ports.ErrItemNotFound)
+		if !ok {
+			t.Errorf("Expected error of type ErrItemNotFound got: %T", err)
+		}
+	})
+}
+
+func TestDeleteOperations(t *testing.T) {
+	config := domain.DefaultConfig()
+	config.Keys = domain.KeyList{
+		Auth: authKey,
+	}
+
+	t.Run("Delete an item", func(t *testing.T) {
+		dummyData := []map[string]interface{}{
+			{
+				"id":         "1",
+				"username":   "CapAmerica",
+				"name":       "Steve Rogers",
+				"picture":    "",
+				"tokenID":    "",
+				"createDate": utils.UnixUTCNow(),
+				"updateDate": utils.UnixUTCNow(),
+				"status":     "active",
+			},
+		}
+
+		data := map[string][]map[string]interface{}{
+			"users": dummyData,
+		}
+
+		repo := mocks.MemRepo{
+			Data: data,
+		}
+
+		service := NewUserService(&repo, config)
+
+		err := service.Delete("1", false)
+
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+
+		_, err = service.Get("1")
+
+		if err == nil {
+			t.Errorf("Expected error got nil")
+		}
+
+		_, ok := err.(ports.ErrItemNotFound)
+		if !ok {
+			t.Errorf("Expected error of type ErrItemNotFound got: %T", err)
+		}
+	})
+
+	t.Run("Delete a non-existing id", func(t *testing.T) {
+		dummyData := []map[string]interface{}{
+			{
+				"id":         "1",
+				"username":   "CapAmerica",
+				"name":       "Steve Rogers",
+				"picture":    "",
+				"tokenID":    "",
+				"createDate": utils.UnixUTCNow(),
+				"updateDate": utils.UnixUTCNow(),
+				"status":     "active",
+			},
+		}
+
+		data := map[string][]map[string]interface{}{
+			"users": dummyData,
+		}
+
+		repo := mocks.MemRepo{
+			Data: data,
+		}
+
+		service := NewUserService(&repo, config)
+
+		_ = service.Delete("3", false)
+
+		got, err := service.Get("1")
+
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+
+		if got.Username != "CapAmerica" {
+			t.Errorf(
+				"Expected username: %q got: %q",
+				got.Username,
+				"CapAmerica",
 			)
 		}
 	})
