@@ -296,3 +296,120 @@ func TestMemRepo(t *testing.T) {
 		}
 	})
 }
+
+func TestInterceptors(t *testing.T) {
+	t.Run("Test list interceptor", func(t *testing.T) {
+		called := false
+		interceptor := func(collection string, results interface{}, skip, limit int, filters ...ports.Filter) error {
+			called = true
+			return nil
+		}
+
+		repo := MemRepo{
+			Data:            map[string][]map[string]interface{}{},
+			ListInterceptor: interceptor,
+		}
+
+		var res interface{}
+		repo.List("coll", res, 0, 0)
+
+		if !called {
+			t.Errorf("Expected ListInterceptor to be called")
+		}
+	})
+
+	t.Run("Test get interceptor", func(t *testing.T) {
+		called := false
+		interceptor := func(collection, id string, result interface{}) error {
+			called = true
+			return nil
+		}
+
+		repo := MemRepo{
+			Data:           map[string][]map[string]interface{}{},
+			GetInterceptor: interceptor,
+		}
+
+		var res interface{}
+		repo.Get("col", "id", res)
+
+		if !called {
+			t.Errorf("Expected GetInterceptor to be called")
+		}
+	})
+
+	t.Run("Test get one interceptor", func(t *testing.T) {
+		called := false
+		interceptor := func(collection string, result interface{}, filters ...ports.Filter) error {
+			called = true
+			return nil
+		}
+		repo := MemRepo{
+			Data:              map[string][]map[string]interface{}{},
+			GetOneInterceptor: interceptor,
+		}
+
+		var res interface{}
+		repo.GetOne("col", res)
+
+		if !called {
+			t.Errorf("Expected GetOneInterceptor to be called")
+		}
+	})
+
+	t.Run("Test list interceptor", func(t *testing.T) {
+		called := false
+		interceptor := func(collection string, entity interface{}) (string, error) {
+			called = true
+			return "", nil
+		}
+		repo := MemRepo{
+			Data:              map[string][]map[string]interface{}{},
+			CreateInterceptor: interceptor,
+		}
+
+		var res interface{}
+		repo.Create("col", res)
+
+		if !called {
+			t.Errorf("Expected CreateInterceptor to be called")
+		}
+	})
+
+	t.Run("Test update interceptor", func(t *testing.T) {
+		called := false
+		interceptor := func(collection, id string, entity interface{}, omit ...string) error {
+			called = true
+			return nil
+		}
+		repo := MemRepo{
+			Data:              map[string][]map[string]interface{}{},
+			UpdateInterceptor: interceptor,
+		}
+
+		var res interface{}
+		repo.Update("col", "id", res)
+
+		if !called {
+			t.Errorf("Expected UpdateInterceptor to be called")
+		}
+	})
+
+	t.Run("Test delete interceptor", func(t *testing.T) {
+		called := false
+		interceptor := func(collection, id string) error {
+			called = true
+			return nil
+		}
+		repo := MemRepo{
+			Data:              map[string][]map[string]interface{}{},
+			DeleteInterceptor: interceptor,
+		}
+
+		repo.Delete("coll", "id")
+
+		if !called {
+			t.Errorf("Expected DeleteInterceptor to be called")
+		}
+	})
+}

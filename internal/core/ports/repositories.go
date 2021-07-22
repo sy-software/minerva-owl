@@ -28,6 +28,8 @@ type Repository interface {
 	List(collection string, results interface{}, skip int, limit int, filters ...Filter) error
 	// Get returns a single item filter by id
 	Get(collection string, id string, result interface{}) error
+	// Get returns a single item filtered with the provided filters
+	GetOne(collection string, result interface{}, filter ...Filter) error
 	// Create saves a new item into the repository and returns the assigned Id
 	Create(collection string, entity interface{}) (string, error)
 	// Update looks for an existing item and update the values omiting the fields in omit

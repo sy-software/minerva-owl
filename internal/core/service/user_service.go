@@ -30,8 +30,14 @@ func (srv *UserService) List(page *int, pageSize *int) ([]domain.User, error) {
 }
 
 func (srv *UserService) ListByRole(role string, page *int, pageSize *int) ([]domain.User, error) {
+	_, pageSizeVal, skip := pagination(page, pageSize, srv.config)
+
 	results := []domain.User{}
-	return results, nil
+	err := srv.repository.List(userCollectionName, &results, skip, pageSizeVal, ports.Filter{
+		Name:  "role",
+		Value: role,
+	})
+	return results, err
 }
 
 func (srv *UserService) Get(id string) (domain.User, error) {
@@ -40,9 +46,13 @@ func (srv *UserService) Get(id string) (domain.User, error) {
 	return result, err
 }
 
-func (srv *UserService) GetByUsername(id string) (domain.User, error) {
+func (srv *UserService) GetByUsername(username string) (domain.User, error) {
 	result := domain.User{}
-	return result, nil
+	err := srv.repository.GetOne(userCollectionName, &result, ports.Filter{
+		Name:  "username",
+		Value: username,
+	})
+	return result, err
 }
 
 func (srv *UserService) Create(

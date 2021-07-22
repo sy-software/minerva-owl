@@ -221,6 +221,119 @@ func TestReadOperations(t *testing.T) {
 			t.Errorf("Expected id: %q got: %q", "1", got.Id)
 		}
 	})
+
+	t.Run("Test getting user by username", func(t *testing.T) {
+		dummyData := []map[string]interface{}{
+			{
+				"id":       "1",
+				"username": "IronMan",
+			},
+			{
+				"id":       "2",
+				"username": "CapAmerica",
+			},
+		}
+
+		data := map[string][]map[string]interface{}{
+			"users": dummyData,
+		}
+
+		called := false
+		repo := mocks.MemRepo{
+			Data: data,
+			GetOneInterceptor: func(collection string, result interface{}, filters ...ports.Filter) error {
+				called = true
+				if len(filters) != 1 {
+					t.Errorf("Expected 1 filter got %d", len(filters))
+				}
+
+				if filters[0].Name != "username" {
+					t.Errorf("Expected filter by key to be \"username\" got %q", filters[0].Name)
+				}
+
+				if filters[0].Value != "IronMan" {
+					t.Errorf("Expected filter by value to be \"IronMan\" got %q", filters[0].Value)
+				}
+
+				return nil
+			},
+		}
+
+		service := NewUserService(&repo, config)
+
+		_, err := service.GetByUsername("IronMan")
+
+		if err != nil {
+			t.Errorf("Got error while getting user by id: %v", err)
+		}
+
+		if !called {
+			t.Errorf("Expected GetOne to be called")
+		}
+	})
+
+	t.Run("Test getting users by role", func(t *testing.T) {
+		page := 1
+		size := 10
+
+		dummyData := []map[string]interface{}{
+			{
+				"id":       "1",
+				"username": "IronMan",
+				"role":     "genius",
+			},
+			{
+				"id":       "2",
+				"username": "CapAmerica",
+				"role":     "leader",
+			},
+		}
+
+		data := map[string][]map[string]interface{}{
+			"users": dummyData,
+		}
+
+		called := false
+		repo := mocks.MemRepo{
+			Data: data,
+			ListInterceptor: func(collection string, results interface{}, skip, limit int, filters ...ports.Filter) error {
+				called = true
+				if skip != 0 {
+					t.Errorf("Expect skip to be 0 got %d", skip)
+				}
+
+				if limit != 10 {
+					t.Errorf("Expect limit to be 10 got %d", limit)
+				}
+
+				if len(filters) != 1 {
+					t.Errorf("Expected 1 filter got %d", len(filters))
+				}
+
+				if filters[0].Name != "role" {
+					t.Errorf("Expected filter by key to be \"role\" got %q", filters[0].Name)
+				}
+
+				if filters[0].Value != "genius" {
+					t.Errorf("Expected filter by value to be \"genius\" got %q", filters[0].Value)
+				}
+
+				return nil
+			},
+		}
+
+		service := NewUserService(&repo, config)
+
+		_, err := service.ListByRole("genius", &page, &size)
+
+		if err != nil {
+			t.Errorf("Got error while getting user by id: %v", err)
+		}
+
+		if !called {
+			t.Errorf("Expected List to be called")
+		}
+	})
 }
 
 func TestUpdateOperations(t *testing.T) {

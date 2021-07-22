@@ -11,10 +11,20 @@ import (
 const ID_REGEX = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
 
 type MemRepo struct {
-	Data map[string][]map[string]interface{}
+	Data              map[string][]map[string]interface{}
+	ListInterceptor   func(collection string, results interface{}, skip int, limit int, filters ...ports.Filter) error
+	GetInterceptor    func(collection string, id string, result interface{}) error
+	GetOneInterceptor func(collection string, result interface{}, filters ...ports.Filter) error
+	CreateInterceptor func(collection string, entity interface{}) (string, error)
+	UpdateInterceptor func(collection string, id string, entity interface{}, omit ...string) error
+	DeleteInterceptor func(collection string, id string) error
 }
 
 func (repo *MemRepo) List(collection string, results interface{}, skip int, limit int, filters ...ports.Filter) error {
+	if repo.ListInterceptor != nil {
+		return repo.ListInterceptor(collection, results, skip, limit, filters...)
+	}
+
 	colData := repo.Data[collection]
 
 	if skip >= len(colData) {
@@ -54,6 +64,10 @@ func (repo *MemRepo) List(collection string, results interface{}, skip int, limi
 }
 
 func (repo *MemRepo) Get(collection string, id string, result interface{}) error {
+	if repo.GetInterceptor != nil {
+		return repo.GetInterceptor(collection, id, result)
+	}
+
 	colData := repo.Data[collection]
 
 	elementPtr := reflect.ValueOf(result)
@@ -86,7 +100,18 @@ func (repo *MemRepo) Get(collection string, id string, result interface{}) error
 	}
 }
 
+func (repo *MemRepo) GetOne(collection string, result interface{}, filters ...ports.Filter) error {
+	if repo.GetOneInterceptor != nil {
+		return repo.GetOneInterceptor(collection, result, filters...)
+	}
+	// TODO: Support queries in our mock db
+	return nil
+}
+
 func (repo *MemRepo) Create(collection string, entity interface{}) (string, error) {
+	if repo.CreateInterceptor != nil {
+		return repo.CreateInterceptor(collection, entity)
+	}
 	var inInterface map[string]interface{}
 	doc, err := json.Marshal(entity)
 	json.Unmarshal(doc, &inInterface)
@@ -103,6 +128,9 @@ func (repo *MemRepo) Create(collection string, entity interface{}) (string, erro
 }
 
 func (repo *MemRepo) Update(collection string, id string, entity interface{}, omit ...string) error {
+	if repo.UpdateInterceptor != nil {
+		return repo.UpdateInterceptor(collection, id, entity, omit...)
+	}
 	colData := repo.Data[collection]
 
 	omitMap := map[string]bool{}
@@ -135,6 +163,9 @@ func (repo *MemRepo) Update(collection string, id string, entity interface{}, om
 }
 
 func (repo *MemRepo) Delete(collection string, id string) error {
+	if repo.DeleteInterceptor != nil {
+		return repo.DeleteInterceptor(collection, id)
+	}
 	colData := repo.Data[collection]
 	newData := []map[string]interface{}{}
 	for _, item := range colData {

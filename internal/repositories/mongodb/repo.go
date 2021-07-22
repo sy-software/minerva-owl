@@ -91,6 +91,33 @@ func (repo *MongoRepo) Get(collection string, id string, result interface{}) err
 	return rawResult.Decode(result)
 }
 
+func (repo *MongoRepo) GetOne(collection string, result interface{}, filters ...ports.Filter) error {
+	log.Debug().Msgf("Finding element with filters: %+v", filters)
+
+	ctx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancelFn()
+
+	dbFilters, err := formatFilters(filters)
+
+	if err != nil {
+		log.Debug().Err(err).Msg("Get error")
+		return nil
+	}
+
+	rawResult := repo.collection.FindOne(ctx, dbFilters)
+
+	if rawResult.Err() == mongo.ErrNoDocuments {
+		return nil
+	}
+
+	if rawResult.Err() != nil {
+		log.Debug().Err(rawResult.Err()).Msg("Get error")
+		return rawResult.Err()
+	}
+
+	return rawResult.Decode(result)
+}
+
 func (repo *MongoRepo) Create(collection string, entity interface{}) (string, error) {
 	log.Debug().Msgf("Saving: %v", entity)
 	ctx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
@@ -187,7 +214,7 @@ func toBSONDoc(v interface{}, omit ...string) (bson.D, error) {
 
 func formatFilters(filters []ports.Filter) (bson.D, error) {
 	result := bson.D{}
-
+	// TODO: Cast ObjectId values to the right type
 	for _, filter := range filters {
 		switch filter.Name {
 		case "$or", "$and":
