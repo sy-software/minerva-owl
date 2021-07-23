@@ -1,6 +1,7 @@
 package service
 
 import (
+	"reflect"
 	"testing"
 	"time"
 
@@ -136,7 +137,59 @@ func TestCreateOperations(t *testing.T) {
 		}
 	})
 
-	// TODO: Implement and test unique username
+	t.Run("Test User with duplicated Username can't be created", func(t *testing.T) {
+		now := utils.UnixUTCNow()
+
+		expected := domain.User{
+			Name:       "Steve Rogers",
+			Username:   "CaptainAmerica",
+			Picture:    "https://mypicture/cap.png",
+			Role:       "hero",
+			Provider:   "marvel",
+			TokenID:    "myToken",
+			CreateDate: now,
+			UpdateDate: now,
+			Status:     "inactive",
+		}
+
+		data := map[string][]map[string]interface{}{
+			"users": {},
+		}
+
+		repo := mocks.MemRepo{
+			Data: data,
+			GetOneInterceptor: func(collection string, result interface{}, filters ...ports.Filter) error {
+				elementPtr := reflect.ValueOf(result)
+				elementVal := elementPtr.Elem()
+
+				newElement := reflect.ValueOf(expected)
+				elementVal.Set(newElement)
+				return nil
+			},
+		}
+
+		var service ports.UserService
+		service = NewUserService(&repo, config)
+
+		_, err := service.Create(
+			expected.Name,
+			expected.Username,
+			expected.Picture,
+			expected.Role,
+			expected.Provider,
+			expected.TokenID,
+			expected.Status,
+		)
+
+		if err == nil {
+			t.Error("Item should not be created and return an error")
+		}
+
+		expectedError := "duplicated Username: CaptainAmerica"
+		if err.Error() != expectedError {
+			t.Errorf("Expected error: %q got: %q", expectedError, err.Error())
+		}
+	})
 }
 
 func TestReadOperations(t *testing.T) {

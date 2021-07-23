@@ -1,6 +1,9 @@
 package service
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/sy-software/minerva-owl/internal/core/domain"
 	"github.com/sy-software/minerva-owl/internal/core/ports"
 	"github.com/sy-software/minerva-owl/internal/utils"
@@ -64,6 +67,16 @@ func (srv *UserService) Create(
 	tokenID string,
 	status string,
 ) (domain.User, error) {
+
+	current, err := srv.GetByUsername(username)
+
+	if err == nil && current.Username == username {
+		return domain.User{}, errors.New(fmt.Sprintf("duplicated Username: %s", username))
+	}
+
+	if _, ok := err.(ports.ErrItemNotFound); err != nil && !ok {
+		return domain.User{}, err
+	}
 
 	encryptedToken, err := utils.AES256Encrypt(srv.config.Keys.Auth, tokenID)
 
