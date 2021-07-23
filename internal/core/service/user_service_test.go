@@ -35,7 +35,7 @@ func TestCreateOperations(t *testing.T) {
 		}
 
 		data := map[string][]map[string]interface{}{
-			"users": {},
+			domain.USER_COL_NAME: {},
 		}
 
 		repo := mocks.MemRepo{
@@ -153,7 +153,7 @@ func TestCreateOperations(t *testing.T) {
 		}
 
 		data := map[string][]map[string]interface{}{
-			"users": {},
+			domain.USER_COL_NAME: {},
 		}
 
 		repo := mocks.MemRepo{
@@ -218,7 +218,7 @@ func TestReadOperations(t *testing.T) {
 		}
 
 		data := map[string][]map[string]interface{}{
-			"users": dummyData,
+			domain.USER_COL_NAME: dummyData,
 		}
 
 		repo := mocks.MemRepo{
@@ -255,7 +255,7 @@ func TestReadOperations(t *testing.T) {
 		}
 
 		data := map[string][]map[string]interface{}{
-			"users": dummyData,
+			domain.USER_COL_NAME: dummyData,
 		}
 
 		repo := mocks.MemRepo{
@@ -288,7 +288,7 @@ func TestReadOperations(t *testing.T) {
 		}
 
 		data := map[string][]map[string]interface{}{
-			"users": dummyData,
+			domain.USER_COL_NAME: dummyData,
 		}
 
 		called := false
@@ -343,7 +343,7 @@ func TestReadOperations(t *testing.T) {
 		}
 
 		data := map[string][]map[string]interface{}{
-			"users": dummyData,
+			domain.USER_COL_NAME: dummyData,
 		}
 
 		called := false
@@ -420,7 +420,7 @@ func TestUpdateOperations(t *testing.T) {
 		}
 
 		data := map[string][]map[string]interface{}{
-			"users": dummyData,
+			domain.USER_COL_NAME: dummyData,
 		}
 
 		repo := mocks.MemRepo{
@@ -533,7 +533,7 @@ func TestUpdateOperations(t *testing.T) {
 		}
 
 		data := map[string][]map[string]interface{}{
-			"users": dummyData,
+			domain.USER_COL_NAME: dummyData,
 		}
 
 		repo := mocks.MemRepo{
@@ -580,7 +580,7 @@ func TestDeleteOperations(t *testing.T) {
 		}
 
 		data := map[string][]map[string]interface{}{
-			"users": dummyData,
+			domain.USER_COL_NAME: dummyData,
 		}
 
 		repo := mocks.MemRepo{
@@ -622,7 +622,7 @@ func TestDeleteOperations(t *testing.T) {
 		}
 
 		data := map[string][]map[string]interface{}{
-			"users": dummyData,
+			domain.USER_COL_NAME: dummyData,
 		}
 
 		repo := mocks.MemRepo{

@@ -4,6 +4,8 @@ import (
 	"time"
 )
 
+const USER_COL_NAME = "users"
+
 // An user authenticated into minerva platform using one OAuth2 provider
 type User struct {
 	Id         string    `bson:"_id,omitempty" json:"id,omitempty"`

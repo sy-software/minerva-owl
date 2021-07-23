@@ -9,7 +9,7 @@ import (
 	"github.com/sy-software/minerva-owl/internal/utils"
 )
 
-const userCollectionName = "users"
+const userCollectionName = domain.USER_COL_NAME
 
 type UserService struct {
 	repository ports.Repository
