@@ -15,17 +15,34 @@ import (
 )
 
 type MongoRepo struct {
-	db         *MongoDB
-	collection *mongo.Collection
-	config     *domain.Config
+	db          *MongoDB
+	collections map[string]*mongo.Collection
+	config      *domain.Config
 }
 
 func NewMongoRepo(db *MongoDB, config *domain.Config) (*MongoRepo, error) {
 	return &MongoRepo{
-		db:         db,
-		collection: db.client.Database("minerva").Collection("organizations"),
-		config:     config,
+		db:          db,
+		collections: map[string]*mongo.Collection{},
+		config:      config,
 	}, nil
+}
+
+func (repo *MongoRepo) mongoGetCollection(collection string) *mongo.Collection {
+	value, exists := repo.collections[collection]
+
+	if exists {
+		log.Debug().Msgf("Reusing connection for: %v", collection)
+		return value
+	} else {
+		log.Debug().Msgf("Getting new collection connection for: %v", collection)
+		value = repo.db.client.
+			Database(repo.config.MongoDBConfig.DB).
+			Collection(collection)
+
+		repo.collections[collection] = value
+		return value
+	}
 }
 
 func (repo *MongoRepo) List(collection string, results interface{}, skip int, limit int, filters ...ports.Filter) error {
@@ -38,12 +55,12 @@ func (repo *MongoRepo) List(collection string, results interface{}, skip int, li
 	dbFilters, err := formatFilters(filters)
 
 	if err != nil {
-		log.Debug().Err(err).Msg("List error")
+		log.Debug().Err(err).Msgf("%v - List error", collection)
 		return err
 	}
 
-	log.Debug().Msg("Listing elements")
-	cur, err := repo.collection.Find(ctx, dbFilters, &options.FindOptions{
+	log.Debug().Msgf("%v - Listing elements", collection)
+	cur, err := repo.mongoGetCollection(collection).Find(ctx, dbFilters, &options.FindOptions{
 		Limit: &limit64,
 		Skip:  &skip64,
 	})
@@ -52,7 +69,7 @@ func (repo *MongoRepo) List(collection string, results interface{}, skip int, li
 	defer cancelFn()
 
 	if err = cur.All(ctx, results); err != nil {
-		log.Debug().Err(err).Msg("List error")
+		log.Debug().Err(err).Msgf("%v - List error", collection)
 		return err
 	}
 
@@ -60,7 +77,7 @@ func (repo *MongoRepo) List(collection string, results interface{}, skip int, li
 }
 
 func (repo *MongoRepo) Get(collection string, id string, result interface{}) error {
-	log.Debug().Msgf("Finding element with _id: %q", id)
+	log.Debug().Msgf("%v - Finding element with _id: %q", collection, id)
 
 	ctx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelFn()
@@ -68,23 +85,23 @@ func (repo *MongoRepo) Get(collection string, id string, result interface{}) err
 	objectId, err := primitive.ObjectIDFromHex(id)
 
 	if err != nil {
-		log.Debug().Err(err).Msg("Get error")
+		log.Debug().Err(err).Msgf("%v - Get error", collection)
 		return nil
 	}
 
-	rawResult := repo.collection.FindOne(ctx, bson.D{
+	rawResult := repo.mongoGetCollection(collection).FindOne(ctx, bson.D{
 		primitive.E{Key: "_id", Value: objectId},
 	})
 
 	if rawResult.Err() == mongo.ErrNoDocuments {
 		return ports.ErrItemNotFound{
 			Id:    id,
-			Model: "Organization",
+			Model: collection,
 		}
 	}
 
 	if rawResult.Err() != nil {
-		log.Debug().Err(rawResult.Err()).Msg("Get error")
+		log.Debug().Err(rawResult.Err()).Msgf("%v - Get error", collection)
 		return rawResult.Err()
 	}
 
@@ -92,7 +109,7 @@ func (repo *MongoRepo) Get(collection string, id string, result interface{}) err
 }
 
 func (repo *MongoRepo) GetOne(collection string, result interface{}, filters ...ports.Filter) error {
-	log.Debug().Msgf("Finding element with filters: %+v", filters)
+	log.Debug().Msgf("%v - Finding element with filters: %+v", collection, filters)
 
 	ctx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelFn()
@@ -100,18 +117,18 @@ func (repo *MongoRepo) GetOne(collection string, result interface{}, filters ...
 	dbFilters, err := formatFilters(filters)
 
 	if err != nil {
-		log.Debug().Err(err).Msg("Get error")
+		log.Debug().Err(err).Msgf("%v - Get error", collection)
 		return nil
 	}
 
-	rawResult := repo.collection.FindOne(ctx, dbFilters)
+	rawResult := repo.mongoGetCollection(collection).FindOne(ctx, dbFilters)
 
 	if rawResult.Err() == mongo.ErrNoDocuments {
 		return nil
 	}
 
 	if rawResult.Err() != nil {
-		log.Debug().Err(rawResult.Err()).Msg("Get error")
+		log.Debug().Err(rawResult.Err()).Msgf("%v - Get error", collection)
 		return rawResult.Err()
 	}
 
@@ -119,11 +136,11 @@ func (repo *MongoRepo) GetOne(collection string, result interface{}, filters ...
 }
 
 func (repo *MongoRepo) Create(collection string, entity interface{}) (string, error) {
-	log.Debug().Msgf("Saving: %v", entity)
+	log.Debug().Msgf("%v - Saving: %v", collection, entity)
 	ctx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelFn()
 
-	result, err := repo.collection.InsertOne(ctx, entity)
+	result, err := repo.mongoGetCollection(collection).InsertOne(ctx, entity)
 
 	if err != nil {
 		return "", err
@@ -133,7 +150,7 @@ func (repo *MongoRepo) Create(collection string, entity interface{}) (string, er
 }
 
 func (repo *MongoRepo) Update(collection string, id string, entity interface{}, omit ...string) error {
-	log.Debug().Msgf("Saving: %v", entity)
+	log.Debug().Msgf("%v - Saving: %v", collection, entity)
 	ctx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelFn()
 
@@ -148,7 +165,7 @@ func (repo *MongoRepo) Update(collection string, id string, entity interface{}, 
 		return err
 	}
 
-	result, err := repo.collection.UpdateOne(ctx, bson.D{
+	result, err := repo.mongoGetCollection(collection).UpdateOne(ctx, bson.D{
 		primitive.E{Key: "_id", Value: objectId},
 	}, bson.D{
 		primitive.E{
@@ -163,7 +180,7 @@ func (repo *MongoRepo) Update(collection string, id string, entity interface{}, 
 }
 
 func (repo *MongoRepo) Delete(collection string, id string) error {
-	log.Debug().Msgf("Deleting by id: %q", id)
+	log.Debug().Msgf("%v - Deleting by id: %q", collection, id)
 	ctx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelFn()
 
@@ -173,11 +190,11 @@ func (repo *MongoRepo) Delete(collection string, id string) error {
 		return err
 	}
 
-	result, err := repo.collection.DeleteOne(ctx, bson.D{
+	result, err := repo.mongoGetCollection(collection).DeleteOne(ctx, bson.D{
 		primitive.E{Key: "_id", Value: objectId},
 	})
 
-	log.Debug().Msgf("Delete result: %+v", result)
+	log.Debug().Msgf("%v - Delete result: %+v", collection, result)
 
 	return err
 }
