@@ -8,7 +8,10 @@ GOTEST=$(GOCMD) test
 GOGET=$(GOCMD) mod download
 BINARY_NAME=minerva-owl
 BINARY_PATH=bin/
-ENTRY_POINT=cmd/graphql/server.go
+GQL_CMD=github.com/99designs/gqlgen generate --verbose
+GQL_HOME=cmd/graphql
+ENTRY_POINT=$(GQL_HOME)/server.go
+
 
 all: clean test build
 build:
@@ -22,6 +25,8 @@ clean:
 		rm -r $(BINARY_PATH)$(BINARY_NAME)
 run:
 		$(GORUN) $(ENTRY_POINT)
+gqlgen:
+		cd $(GQL_HOME) && $(GORUN) $(GQL_CMD)
 deps:
 		$(GOGET)
 

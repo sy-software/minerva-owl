@@ -2,32 +2,11 @@
 #
 # https://gqlgen.com/getting-started/
 
-type Todo {
-  id: ID!
-  text: String!
-  done: Boolean!
-  user: User!
-}
+#### Scalars
 
-type User {
-  id: ID!
-  name: String!
-}
+scalar Time
 
-# type Query {
-#   todos: [Todo!]!
-# }
-
-input NewTodo {
-  text: String!
-  userId: String!
-}
-
-# type Mutation {
-#   createTodo(input: NewTodo!): Todo!
-# }
-
-####
+#### Organization
 
 type Organization {
   id: ID!
@@ -49,14 +28,61 @@ input UpdateOrganization {
   logo: String
 }
 
+#### Users
+
+type User {
+  id: ID!
+  username: String!
+  name: String!
+  picture: String
+  role: String!
+  provider: String!
+  tokenID: String!
+  createDate: Time!
+  updateDate: Time!
+  status: String!
+}
+
+input NewUser {
+  username: String!
+  name: String!
+  picture: String
+  role: String!
+  provider: String!
+  tokenID: String!
+  status: String!
+}
+
+input UpdateUser {
+  id: ID!
+  username: String!
+  name: String!
+  picture: String
+  role: String!
+  provider: String!
+  tokenID: String!
+  status: String!
+}
+
+### Queries
 
 type Query {
+  # Organizations
   organizations(page: Int, pageSize: Int): [Organization!]!
   organization(id: ID!): Organization
+  # Users
+  users(role: String, page: Int, pageSize: Int): [User!]!
+  user(id: ID!): User
+  userByUsername(username: String!): User
 }
 
 type Mutation {
+  # Organizations
   createOrganization(input: NewOrganization!): Organization!
   updateOrganization(input: UpdateOrganization!): Organization!
   deleteOrganization(id: ID!): Organization!
+  # Users
+  createUser(input: NewUser!): User!
+  updateUser(input: UpdateUser!): User!
+  deleteUser(id: ID!): User!
 }

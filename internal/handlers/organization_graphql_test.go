@@ -12,7 +12,7 @@ import (
 	"github.com/sy-software/minerva-owl/mocks"
 )
 
-func TestDomainToGraphQLModel(t *testing.T) {
+func TestOrgToGraphQLModel(t *testing.T) {
 	logo := "myLogo"
 	expected := model.Organization{
 		ID:          "myId",
@@ -28,7 +28,7 @@ func TestDomainToGraphQLModel(t *testing.T) {
 		Logo:        *expected.Logo,
 	}
 
-	got := domainToGraphQLModel(&test)
+	got := orgToGraphQLModel(&test)
 
 	if got.ID != expected.ID {
 		t.Errorf("Expected ID to be: %q got: %q", expected.ID, got.ID)
@@ -47,7 +47,7 @@ func TestDomainToGraphQLModel(t *testing.T) {
 	}
 }
 
-func TestCreateOperation(t *testing.T) {
+func TestOrgCreateOperation(t *testing.T) {
 	t.Run("Create an Organization without logo", func(t *testing.T) {
 		data := map[string][]map[string]interface{}{
 			"organizations": {},
@@ -142,7 +142,7 @@ func TestCreateOperation(t *testing.T) {
 	})
 }
 
-func TestQueryOperations(t *testing.T) {
+func TestOrgQueryOperations(t *testing.T) {
 	t.Run("Query all items", func(t *testing.T) {
 		base := []map[string]interface{}{
 			{
@@ -269,7 +269,7 @@ func TestQueryOperations(t *testing.T) {
 	})
 }
 
-func TestQueryPagination(t *testing.T) {
+func TestOrgQueryPagination(t *testing.T) {
 	dummydata := make([]domain.Organization, 20)
 	dummyDict := make([]map[string]interface{}, 20)
 
@@ -443,7 +443,7 @@ func TestQueryPagination(t *testing.T) {
 	})
 }
 
-func TestUpdateOperation(t *testing.T) {
+func TestOrgUpdateOperation(t *testing.T) {
 	t.Run("Partial Update", func(t *testing.T) {
 		base := []map[string]interface{}{
 			{
@@ -579,7 +579,7 @@ func TestUpdateOperation(t *testing.T) {
 	})
 }
 
-func TestDeleteOperaton(t *testing.T) {
+func TestOrgDeleteOperaton(t *testing.T) {
 	t.Run("Delete an item", func(t *testing.T) {
 		base := []map[string]interface{}{
 			{

@@ -43,11 +43,14 @@ func main() {
 
 	defer mdbInstance.Close()
 
-	service := service.NewOrgService(repo, config)
-	handlerInstance := handlers.NewOrgGraphqlHandler(*service)
+	orgService := service.NewOrgService(repo, config)
+	usrServce := service.NewUserService(repo, config)
+	orgHandler := handlers.NewOrgGraphqlHandler(*orgService)
+	usrHanlder := handlers.NewUserGraphqlHandler(*usrServce)
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{
-		Handler: *handlerInstance,
+		OrgHandler: *orgHandler,
+		UsrHandler: *usrHanlder,
 	}}))
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))

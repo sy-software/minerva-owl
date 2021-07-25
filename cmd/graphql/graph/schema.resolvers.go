@@ -11,23 +11,47 @@ import (
 )
 
 func (r *mutationResolver) CreateOrganization(ctx context.Context, input model.NewOrganization) (*model.Organization, error) {
-	return r.Handler.Create(input.Name, input.Description, input.Logo)
+	return r.OrgHandler.Create(input.Name, input.Description, input.Logo)
 }
 
 func (r *mutationResolver) UpdateOrganization(ctx context.Context, input model.UpdateOrganization) (*model.Organization, error) {
-	return r.Handler.Update(input.ID, input.Name, input.Description, input.Logo)
+	return r.OrgHandler.Update(input.ID, input.Name, input.Description, input.Logo)
 }
 
 func (r *mutationResolver) DeleteOrganization(ctx context.Context, id string) (*model.Organization, error) {
-	return r.Handler.Delete(id)
+	return r.OrgHandler.Delete(id)
+}
+
+func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (*model.User, error) {
+	return r.UsrHandler.Create(input)
+}
+
+func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUser) (*model.User, error) {
+	return r.UsrHandler.Update(input)
+}
+
+func (r *mutationResolver) DeleteUser(ctx context.Context, id string) (*model.User, error) {
+	return r.UsrHandler.Delete(id)
 }
 
 func (r *queryResolver) Organizations(ctx context.Context, page *int, pageSize *int) ([]*model.Organization, error) {
-	return r.Handler.Query(page, pageSize)
+	return r.OrgHandler.Query(page, pageSize)
 }
 
 func (r *queryResolver) Organization(ctx context.Context, id string) (*model.Organization, error) {
-	return r.Handler.QueryById(id)
+	return r.OrgHandler.QueryById(id)
+}
+
+func (r *queryResolver) Users(ctx context.Context, role *string, page *int, pageSize *int) ([]*model.User, error) {
+	return r.UsrHandler.Query(role, page, pageSize)
+}
+
+func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error) {
+	return r.UsrHandler.QueryById(id)
+}
+
+func (r *queryResolver) UserByUsername(ctx context.Context, username string) (*model.User, error) {
+	return r.UsrHandler.QueryByUsername(username)
 }
 
 // Mutation returns generated.MutationResolver implementation.

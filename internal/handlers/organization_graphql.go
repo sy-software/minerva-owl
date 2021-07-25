@@ -57,7 +57,7 @@ func (handler *OrganizationGraphqlHandler) Update(id string, name *string, descr
 		return nil, err
 	}
 
-	return domainToGraphQLModel(&output), nil
+	return orgToGraphQLModel(&output), nil
 }
 
 func (handler *OrganizationGraphqlHandler) Query(page *int, pageSize *int) ([]*model.Organization, error) {
@@ -70,7 +70,7 @@ func (handler *OrganizationGraphqlHandler) Query(page *int, pageSize *int) ([]*m
 	out := make([]*model.Organization, len(all))
 
 	for index, elem := range all {
-		out[index] = domainToGraphQLModel(&elem)
+		out[index] = orgToGraphQLModel(&elem)
 	}
 
 	return out, nil
@@ -83,7 +83,7 @@ func (handler *OrganizationGraphqlHandler) QueryById(id string) (*model.Organiza
 		return nil, err
 	}
 
-	return domainToGraphQLModel(&out), nil
+	return orgToGraphQLModel(&out), nil
 }
 
 func (handler *OrganizationGraphqlHandler) Delete(id string) (*model.Organization, error) {
@@ -99,10 +99,10 @@ func (handler *OrganizationGraphqlHandler) Delete(id string) (*model.Organizatio
 		return nil, err
 	}
 
-	return domainToGraphQLModel(&out), nil
+	return orgToGraphQLModel(&out), nil
 }
 
-func domainToGraphQLModel(source *domain.Organization) *model.Organization {
+func orgToGraphQLModel(source *domain.Organization) *model.Organization {
 	return &model.Organization{
 		ID:          source.Id,
 		Name:        source.Name,

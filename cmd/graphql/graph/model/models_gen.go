@@ -2,15 +2,24 @@
 
 package model
 
+import (
+	"time"
+)
+
 type NewOrganization struct {
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
 	Logo        *string `json:"logo"`
 }
 
-type NewTodo struct {
-	Text   string `json:"text"`
-	UserID string `json:"userId"`
+type NewUser struct {
+	Username string  `json:"username"`
+	Name     string  `json:"name"`
+	Picture  *string `json:"picture"`
+	Role     string  `json:"role"`
+	Provider string  `json:"provider"`
+	TokenID  string  `json:"tokenID"`
+	Status   string  `json:"status"`
 }
 
 type Organization struct {
@@ -20,13 +29,6 @@ type Organization struct {
 	Logo        *string `json:"logo"`
 }
 
-type Todo struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
-	Done bool   `json:"done"`
-	User *User  `json:"user"`
-}
-
 type UpdateOrganization struct {
 	ID          string  `json:"id"`
 	Name        *string `json:"name"`
@@ -34,7 +36,26 @@ type UpdateOrganization struct {
 	Logo        *string `json:"logo"`
 }
 
+type UpdateUser struct {
+	ID       string  `json:"id"`
+	Username string  `json:"username"`
+	Name     string  `json:"name"`
+	Picture  *string `json:"picture"`
+	Role     string  `json:"role"`
+	Provider string  `json:"provider"`
+	TokenID  string  `json:"tokenID"`
+	Status   string  `json:"status"`
+}
+
 type User struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID         string    `json:"id"`
+	Username   string    `json:"username"`
+	Name       string    `json:"name"`
+	Picture    *string   `json:"picture"`
+	Role       string    `json:"role"`
+	Provider   string    `json:"provider"`
+	TokenID    string    `json:"tokenID"`
+	CreateDate time.Time `json:"createDate"`
+	UpdateDate time.Time `json:"updateDate"`
+	Status     string    `json:"status"`
 }

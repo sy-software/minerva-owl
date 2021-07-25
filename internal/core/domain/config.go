@@ -32,6 +32,8 @@ type MDBConfig struct {
 	Host string `json:"host,omitempty"`
 	// Database port, default: 27017
 	Port int `json:"port,omitempty"`
+	// Database name
+	DB string `json:"db,omitempty"`
 	// Database username. Omit if the DB have no authentication
 	Username string `json:"username,omitempty"`
 	// Database password. Omit if the DB have no authentication
@@ -53,7 +55,7 @@ type Pagination struct {
 
 type KeyList struct {
 	// For auth related encryptions
-	Auth string `json:"host,omitempty"`
+	Auth string `json:"auth,omitempty"`
 }
 
 // Config contains all configuration for this service
