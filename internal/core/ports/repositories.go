@@ -18,6 +18,9 @@ func (err ErrItemNotFound) Error() string {
 	return fmt.Sprintf("Can't find %v with Id: %v", err.Model, err.Id)
 }
 
+// Filter is used to privide an abstraction for repository specific filters
+// Each repository have the responsibility to parse the filters into the right
+// query representation (E.G.: SQL, CQL, etc.)
 type Filter struct {
 	Name  string
 	Value interface{}

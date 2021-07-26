@@ -22,5 +22,8 @@
     "pagination": {
         "pageSize": 10,
         "maxPageSize": 100
+    },
+    "keys": {
+        "auth": "#################################"
     }
 }

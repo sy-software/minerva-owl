@@ -14,12 +14,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// MongoRepo is an implementation of ports.Repo interface with MongoDB as datasource
 type MongoRepo struct {
 	db          *MongoDB
 	collections map[string]*mongo.Collection
 	config      *domain.Config
 }
 
+// NewMongoRepo creates an instance of MongoRepo
 func NewMongoRepo(db *MongoDB, config *domain.Config) (*MongoRepo, error) {
 	return &MongoRepo{
 		db:          db,
@@ -28,6 +30,7 @@ func NewMongoRepo(db *MongoDB, config *domain.Config) (*MongoRepo, error) {
 	}, nil
 }
 
+// mongoGetCollection checks if we have a reference of a given collection, if no creates a new one and returns it
 func (repo *MongoRepo) mongoGetCollection(collection string) *mongo.Collection {
 	value, exists := repo.collections[collection]
 
@@ -45,6 +48,8 @@ func (repo *MongoRepo) mongoGetCollection(collection string) *mongo.Collection {
 	}
 }
 
+// List stores into results a list of items from the given collection applying the filters
+// results must be a pointer to an Slice of an struct with bson tags for serialization
 func (repo *MongoRepo) List(collection string, results interface{}, skip int, limit int, filters ...ports.Filter) error {
 	ctx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelFn()
@@ -76,6 +81,8 @@ func (repo *MongoRepo) List(collection string, results interface{}, skip int, li
 	return err
 }
 
+// Get stores into result an item from collection with _id equals to id
+// result must be a pointer to an instance of a struct with bson tags for serialization
 func (repo *MongoRepo) Get(collection string, id string, result interface{}) error {
 	log.Debug().Msgf("%v - Finding element with _id: %q", collection, id)
 
@@ -108,6 +115,8 @@ func (repo *MongoRepo) Get(collection string, id string, result interface{}) err
 	return rawResult.Decode(result)
 }
 
+// Get stores into result an item from collection matching the filters
+// result must be a pointer to an instance of a struct with bson tags for serialization
 func (repo *MongoRepo) GetOne(collection string, result interface{}, filters ...ports.Filter) error {
 	log.Debug().Msgf("%v - Finding element with filters: %+v", collection, filters)
 
@@ -135,6 +144,8 @@ func (repo *MongoRepo) GetOne(collection string, result interface{}, filters ...
 	return rawResult.Decode(result)
 }
 
+// Create saves the serialized version of entity into the collection
+// entity must be an instance of a struct with bson tags for serialization
 func (repo *MongoRepo) Create(collection string, entity interface{}) (string, error) {
 	log.Debug().Msgf("%v - Saving: %v", collection, entity)
 	ctx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
@@ -149,6 +160,11 @@ func (repo *MongoRepo) Create(collection string, entity interface{}) (string, er
 	return fmt.Sprintf("%v", result.InsertedID), nil
 }
 
+// Update saves the values of entity to the item with id from the collection
+// entity must be an instance of a struct with bson tags for serialization
+//
+// If you whish to omit some fields from entity from saving you can pass the field
+// names into the final omit parameter
 func (repo *MongoRepo) Update(collection string, id string, entity interface{}, omit ...string) error {
 	log.Debug().Msgf("%v - Saving: %v", collection, entity)
 	ctx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
@@ -179,6 +195,7 @@ func (repo *MongoRepo) Update(collection string, id string, entity interface{}, 
 	return err
 }
 
+// Delete removes item with id from collection
 func (repo *MongoRepo) Delete(collection string, id string) error {
 	log.Debug().Msgf("%v - Deleting by id: %q", collection, id)
 	ctx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
@@ -199,7 +216,9 @@ func (repo *MongoRepo) Delete(collection string, id string) error {
 	return err
 }
 
+// toBSONDoc marshals the value of v into a bson.D and omits the fields matching a name from omit
 func toBSONDoc(v interface{}, omit ...string) (bson.D, error) {
+	// TODO: Support nested documents and arrays
 	data, err := bson.Marshal(v)
 	if err != nil {
 		return bson.D{}, nil
@@ -229,6 +248,7 @@ func toBSONDoc(v interface{}, omit ...string) (bson.D, error) {
 	return filtered, nil
 }
 
+// formatFilters takes a generic list of filters and converts them into a MongoDB query
 func formatFilters(filters []ports.Filter) (bson.D, error) {
 	result := bson.D{}
 	// TODO: Cast ObjectId values to the right type
@@ -258,6 +278,7 @@ func formatFilters(filters []ports.Filter) (bson.D, error) {
 	return result, nil
 }
 
+// formatFilters takes a generic filter and converts it into a MongoDB query
 func formatFilter(f ports.Filter) bson.E {
 	if value, ok := f.Value.(ports.Filter); ok {
 		return bson.E{

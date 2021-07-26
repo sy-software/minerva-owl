@@ -7,16 +7,19 @@ import (
 	"github.com/sy-software/minerva-owl/internal/utils"
 )
 
+// UserGraphqlHandler works as adapter between GraphQL endpoints and a UserService
 type UserGraphqlHandler struct {
 	service service.UserService
 }
 
+// NewUserGraphqlHandler creates an instance of UserGraphqlHandler
 func NewUserGraphqlHandler(service service.UserService) *UserGraphqlHandler {
 	return &UserGraphqlHandler{
 		service: service,
 	}
 }
 
+// Create saves a new user into a repository
 func (handler *UserGraphqlHandler) Create(input model.NewUser) (*model.User, error) {
 	domainUser, err := handler.service.Create(
 		input.Name,
@@ -35,6 +38,7 @@ func (handler *UserGraphqlHandler) Create(input model.NewUser) (*model.User, err
 	return userToGraphQL(&domainUser), err
 }
 
+// Update saves changes into an exiting User
 func (handler *UserGraphqlHandler) Update(input model.UpdateUser) (*model.User, error) {
 	domainUser, err := handler.service.Update(*graphQLUpdateToUser(&input))
 
@@ -45,6 +49,7 @@ func (handler *UserGraphqlHandler) Update(input model.UpdateUser) (*model.User, 
 	return userToGraphQL(&domainUser), err
 }
 
+// Delete removes a User with the provided id
 func (handler *UserGraphqlHandler) Delete(id string) (*model.User, error) {
 	out, err := handler.service.Get(id)
 
@@ -61,6 +66,7 @@ func (handler *UserGraphqlHandler) Delete(id string) (*model.User, error) {
 	return userToGraphQL(&out), nil
 }
 
+// Query returns a paginated list of Users that can be filtered by role
 func (handler *UserGraphqlHandler) Query(role *string, page *int, pageSize *int) ([]*model.User, error) {
 	output := []*model.User{}
 	var users []domain.User
@@ -84,6 +90,7 @@ func (handler *UserGraphqlHandler) Query(role *string, page *int, pageSize *int)
 	return output, nil
 }
 
+// QueryById returns the User with the provided id
 func (handler *UserGraphqlHandler) QueryById(id string) (*model.User, error) {
 	domainUser, err := handler.service.Get(id)
 
@@ -94,6 +101,7 @@ func (handler *UserGraphqlHandler) QueryById(id string) (*model.User, error) {
 	return userToGraphQL(&domainUser), nil
 }
 
+// QueryById returns the User with the provided username
 func (handler *UserGraphqlHandler) QueryByUsername(username string) (*model.User, error) {
 	domainUser, err := handler.service.GetByUsername(username)
 
@@ -104,6 +112,7 @@ func (handler *UserGraphqlHandler) QueryByUsername(username string) (*model.User
 	return userToGraphQL(&domainUser), nil
 }
 
+// userToGraphQL converts the internal User model into the GraphQL version
 func userToGraphQL(source *domain.User) *model.User {
 	return &model.User{
 		ID:         source.Id,
@@ -119,6 +128,7 @@ func userToGraphQL(source *domain.User) *model.User {
 	}
 }
 
+// graphQLUpdateToUser converts the GraphQL user model into our internal model
 func graphQLUpdateToUser(source *model.UpdateUser) *domain.User {
 	return &domain.User{
 		Id:       source.ID,

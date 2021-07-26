@@ -5,6 +5,7 @@ import (
 	"github.com/sy-software/minerva-owl/internal/utils"
 )
 
+// pagination Normalizes page and pageSize from external paramters into usable values
 func pagination(reqPage *int, reqPageSize *int, config domain.Config) (page int, pageSize int, skip int) {
 	page = utils.CoalesceInt(reqPage, 1) - 1
 	pageSize = utils.CoalesceInt(reqPageSize, config.Pagination.PageSize)

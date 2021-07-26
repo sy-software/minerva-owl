@@ -54,7 +54,7 @@ type Pagination struct {
 }
 
 type KeyList struct {
-	// For auth related encryptions
+	// For auth related encryptions should be a 32 bits hex encoded string
 	Auth string `json:"auth,omitempty"`
 }
 
@@ -68,9 +68,11 @@ type Config struct {
 	Port string `json:"port,omitempty"`
 	// Default pagination settings
 	Pagination Pagination `json:"pagination,omitempty"`
-	Keys       KeyList    `json:"keys,omitempty"`
+	// Encryption and security keys
+	Keys KeyList `json:"keys,omitempty"`
 }
 
+// DefaultConfig returns an instance of Config with the default values
 func DefaultConfig() Config {
 	return Config{
 		CassandraDB: CDBConfig{
