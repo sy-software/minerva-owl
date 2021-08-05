@@ -74,7 +74,7 @@ func (repo *OrgRepo) Get(id string) (domain.Organization, error) {
 
 	if result.Err() == mongo.ErrNoDocuments {
 		return org, ports.ErrItemNotFound{
-			Id:    id,
+			Id:    &id,
 			Model: "Organization",
 		}
 	}

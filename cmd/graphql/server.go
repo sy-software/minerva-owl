@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"net/http"
 	"os"
 
@@ -44,19 +46,25 @@ func main() {
 	defer mdbInstance.Close()
 
 	orgService := service.NewOrgService(repo, config)
-	usrServce := service.NewUserService(repo, config)
+	usrService := service.NewUserService(repo, config)
 	orgHandler := handlers.NewOrgGraphqlHandler(*orgService)
-	usrHanlder := handlers.NewUserGraphqlHandler(*usrServce)
+	usrHandler := handlers.NewUserGraphqlHandler(*usrService)
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{
 		OrgHandler: *orgHandler,
-		UsrHandler: *usrHanlder,
+		UsrHandler: *usrHandler,
 	}}))
+
+	srv.SetRecoverFunc(func(ctx context.Context, err interface{}) error {
+		// TODO: Implement bug tracker
+		log.Error().Stack().Msgf("Unexpected error: %v", err)
+		return errors.New("internal server error")
+	})
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)
 
-	log.Info().Msgf("connect to http://localhost:%s/ for GraphQL playground", config.Port)
+	log.Info().Msgf("connect to http://%s:%s/ for GraphQL playground", config.Host, config.Port)
 	log.Fatal().
 		Err(http.ListenAndServe(config.Host+":"+config.Port, nil)).
 		Msg("Can't start server")

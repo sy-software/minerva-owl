@@ -95,7 +95,7 @@ func (repo *MemRepo) Get(collection string, id string, result interface{}) error
 	}
 
 	return ports.ErrItemNotFound{
-		Id:    id,
+		Id:    &id,
 		Model: collection,
 	}
 }

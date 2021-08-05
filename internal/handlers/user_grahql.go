@@ -1,8 +1,12 @@
 package handlers
 
 import (
+	"errors"
+	"strings"
+
 	"github.com/sy-software/minerva-owl/cmd/graphql/graph/model"
 	"github.com/sy-software/minerva-owl/internal/core/domain"
+	"github.com/sy-software/minerva-owl/internal/core/ports"
 	"github.com/sy-software/minerva-owl/internal/core/service"
 	"github.com/sy-software/minerva-owl/internal/utils"
 )
@@ -32,6 +36,9 @@ func (handler *UserGraphqlHandler) Create(input model.NewUser) (*model.User, err
 	)
 
 	if err != nil {
+		if strings.HasPrefix(err.Error(), "duplicated") {
+			return nil, errors.New("duplicated_value")
+		}
 		return nil, err
 	}
 
@@ -94,6 +101,10 @@ func (handler *UserGraphqlHandler) Query(role *string, page *int, pageSize *int)
 func (handler *UserGraphqlHandler) QueryById(id string) (*model.User, error) {
 	domainUser, err := handler.service.Get(id)
 
+	if _, ok := err.(ports.ErrItemNotFound); ok {
+		return nil, errors.New("not_found")
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -104,6 +115,10 @@ func (handler *UserGraphqlHandler) QueryById(id string) (*model.User, error) {
 // QueryById returns the User with the provided username
 func (handler *UserGraphqlHandler) QueryByUsername(username string) (*model.User, error) {
 	domainUser, err := handler.service.GetByUsername(username)
+
+	if _, ok := err.(ports.ErrItemNotFound); ok {
+		return nil, errors.New("not_found")
+	}
 
 	if err != nil {
 		return nil, err

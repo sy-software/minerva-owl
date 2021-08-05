@@ -149,7 +149,7 @@ func TestOrganizationIsRead(t *testing.T) {
 	})
 
 	t.Run("Get an Organization by a not existing Id", func(t *testing.T) {
-		expectedError := "Can't find organizations with Id: not_exists_id"
+		expectedError := "can't find organizations with Id: not_exists_id"
 		_, err := service.Get("not_exists_id")
 		if err == nil {
 			t.Errorf("Expected 'ErrItemNotFound' error got: %v", err)

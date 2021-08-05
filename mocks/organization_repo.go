@@ -32,7 +32,7 @@ func (memRepo *OrgInMemoryRepo) Get(id string) (domain.Organization, error) {
 	}
 
 	return domain.Organization{}, ports.ErrItemNotFound{
-		Id:    id,
+		Id:    &id,
 		Model: "Organization",
 	}
 }

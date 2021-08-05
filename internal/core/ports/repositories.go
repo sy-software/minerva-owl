@@ -9,13 +9,17 @@ import (
 // ErrItemNotFound must be thrown when a operation is tried against a nonexisting item
 type ErrItemNotFound struct {
 	// The Id of the requested item
-	Id string
+	Id *string
 	// Which domain model this item belongs to
 	Model string
 }
 
 func (err ErrItemNotFound) Error() string {
-	return fmt.Sprintf("Can't find %v with Id: %v", err.Model, err.Id)
+	if err.Id != nil {
+		return fmt.Sprintf("can't find %v with Id: %v", err.Model, *err.Id)
+	} else {
+		return fmt.Sprintf("can't find %v", err.Model)
+	}
 }
 
 // Filter is used to privide an abstraction for repository specific filters

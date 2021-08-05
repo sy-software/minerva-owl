@@ -102,7 +102,7 @@ func (repo *MongoRepo) Get(collection string, id string, result interface{}) err
 
 	if rawResult.Err() == mongo.ErrNoDocuments {
 		return ports.ErrItemNotFound{
-			Id:    id,
+			Id:    &id,
 			Model: collection,
 		}
 	}
@@ -133,7 +133,10 @@ func (repo *MongoRepo) GetOne(collection string, result interface{}, filters ...
 	rawResult := repo.mongoGetCollection(collection).FindOne(ctx, dbFilters)
 
 	if rawResult.Err() == mongo.ErrNoDocuments {
-		return nil
+		log.Debug().Err(rawResult.Err()).Msgf("%v - Get error", collection)
+		return ports.ErrItemNotFound{
+			Model: collection,
+		}
 	}
 
 	if rawResult.Err() != nil {
