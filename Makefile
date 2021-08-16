@@ -12,7 +12,6 @@ GQL_CMD=github.com/99designs/gqlgen generate --verbose
 GQL_HOME=cmd/graphql
 ENTRY_POINT=$(GQL_HOME)/server.go
 
-
 all: clean test build
 build:
 		$(GOBUILD) -o $(BINARY_PATH)$(BINARY_NAME) -v $(ENTRY_POINT)
@@ -29,7 +28,6 @@ gqlgen:
 		cd $(GQL_HOME) && $(GORUN) $(GQL_CMD)
 deps:
 		$(GOGET)
-
 
 # Cross compilation
 build-all:

@@ -12,24 +12,18 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/sy-software/minerva-owl/cmd/graphql/graph"
 	"github.com/sy-software/minerva-owl/cmd/graphql/graph/generated"
-	"github.com/sy-software/minerva-owl/internal/core/domain"
 	"github.com/sy-software/minerva-owl/internal/core/service"
 	"github.com/sy-software/minerva-owl/internal/handlers"
+	"github.com/sy-software/minerva-owl/internal/repositories"
 	"github.com/sy-software/minerva-owl/internal/repositories/mongodb"
 )
-
-const defaultConfigFile = "./config.json"
 
 func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	log.Info().Msg("Starting server")
 
-	configFile := os.Getenv("CONFIG_FILE")
-	if configFile == "" {
-		configFile = defaultConfigFile
-	}
-
-	config := domain.LoadConfiguration(configFile)
+	configRepo := repositories.ConfigRepo{}
+	config := configRepo.Get()
 	mdbInstance, err := mongodb.GetMongoDB(config.MongoDBConfig)
 
 	if err != nil {

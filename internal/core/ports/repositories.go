@@ -58,3 +58,9 @@ type OrganizationRepo interface {
 	// Delete removes the item with the specified id from the repo
 	Delete(id string) error
 }
+
+// ConfigRepository provides connection to our config server
+type ConfigRepository interface {
+	// Get connects to the configuration server and loads the config
+	Get() (domain.Config, error)
+}
