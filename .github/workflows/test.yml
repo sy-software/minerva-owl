@@ -23,7 +23,9 @@ jobs:
     - name: Test
       run: go test -v ./...
     - name: Trigger next workflow
-      if: success()
+    # Since windows is last OS in the matrix we only build
+    # the docker image after all test passed
+      if: ${{ success() && matrix.os=='windows-latest' }}
       uses: peter-evans/repository-dispatch@v1
       with:
         token: ${{ secrets.REPO_GHA_PAT }}
