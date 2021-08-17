@@ -18,5 +18,15 @@ jobs:
         go-version: ${{ matrix.go-version }}
     - name: Checkout code
       uses: actions/checkout@v2
+      with:
+        ref: ${{ github.event.client_payload.sha }}
     - name: Test
       run: go test -v ./...
+    - name: Trigger next workflow
+      if: success()
+      uses: peter-evans/repository-dispatch@v1
+      with:
+        token: ${{ secrets.REPO_GHA_PAT }}
+        repository: ${{ github.repository }}
+        event-type: trigger-docker-build
+        client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
