@@ -160,7 +160,7 @@ func (repo *MongoRepo) Create(collection string, entity interface{}) (string, er
 		return "", err
 	}
 
-	return fmt.Sprintf("%v", result.InsertedID), nil
+	return result.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 
 // Update saves the values of entity to the item with id from the collection
