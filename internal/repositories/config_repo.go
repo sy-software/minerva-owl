@@ -39,21 +39,21 @@ func (repo *ConfigRepo) Get() domain.Config {
 		response, err := netClient.Get(fmt.Sprintf("%s%s", configServer, "owl"))
 
 		if err != nil {
-			log.Error().Err(err).Msg("Can't load config:")
+			log.Error().Err(err).Msg("Can't load config")
 			panic(err)
 		}
 
 		buf, err := ioutil.ReadAll(response.Body)
 
 		if err != nil {
-			log.Error().Err(err).Msg("Can't load config:")
+			log.Error().Err(err).Msg("Can't load config")
 			panic(err)
 		}
 
 		err = json.Unmarshal(buf, &config)
 
 		if err != nil {
-			log.Error().Err(err).Msg("Can't load config:")
+			log.Error().Err(err).Msg("Can't load config")
 			panic(err)
 		}
 

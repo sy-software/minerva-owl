@@ -70,6 +70,11 @@ func (repo *MongoRepo) List(collection string, results interface{}, skip int, li
 		Skip:  &skip64,
 	})
 
+	if err != nil {
+		log.Debug().Err(err).Msgf("%v - List error", collection)
+		return err
+	}
+
 	ctx, cancelFn = context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelFn()
 
