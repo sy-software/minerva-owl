@@ -215,6 +215,8 @@ github.com/stretchr/testify v1.6.1 h1:hDPOHmpOpP40lSULcqw7IrRb/u7w6RpDC9399XyoNd
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/sy-software/minerva-go-utils v0.0.0-20210809225732-ad0d2314ce94 h1:tKR//TT2O9HPZvBMdTgYRnDngeaOe5CojNXPLzmPeXw=
 github.com/sy-software/minerva-go-utils v0.0.0-20210809225732-ad0d2314ce94/go.mod h1:GMQMD+Z0NWoxjBbLkF+9wEwH4nGwQdKw1KLdX+TCu1g=
+github.com/sy-software/minerva-go-utils v0.0.0-20210818225928-36f6fc1f86fb h1:UAmIMy3roOKxToDcH9xVylK8403jjThf8kmc47IumOo=
+github.com/sy-software/minerva-go-utils v0.0.0-20210818225928-36f6fc1f86fb/go.mod h1:paf2UJ/95Tg1l0LRJcMj8Bvhv10Yzq14bWkypD3rTMg=
 github.com/tidwall/pretty v1.0.0 h1:HsD+QiTn7sK6flMKIvNmpqz1qrpP3Ps6jOKIKMooyg4=
 github.com/tidwall/pretty v1.0.0/go.mod h1:XNkn88O1ChpSDQmQeStsy+sBenx6DDtFZJxhVysOjyk=
 github.com/ugorji/go v1.1.7 h1:/68gy2h+1mWMrwZFeD1kQialdSzAb432dtpeJ42ovdo=
