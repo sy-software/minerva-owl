@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/99designs/gqlgen v0.13.0
+	github.com/dn365/gin-zerolog v0.0.0-20171227063204-b43714b00db1 // indirect
 	github.com/gin-gonic/gin v1.7.4 // indirect
 	github.com/gocql/gocql v0.0.0-20210621133426-d83b80dfb480
 	github.com/google/go-cmp v0.5.6

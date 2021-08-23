@@ -29,10 +29,11 @@ func graphqlHandler(config *domain.Config, resolver *graph.Resolver) gin.Handler
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
 
 	srv.SetRecoverFunc(func(ctx context.Context, err interface{}) error {
-		// TODO: Implement bug tracker
-		log.Error().Msgf("Unexpected error: %v", err)
+		handlers.ErrorLogger(ctx)
 		return errors.New("internal server error")
 	})
+
+	srv.AroundOperations(handlers.GQLOperationMiddleware)
 
 	return func(c *gin.Context) {
 		srv.ServeHTTP(c.Writer, c.Request)
@@ -75,7 +76,9 @@ func main() {
 	orgHandler := handlers.NewOrgGraphqlHandler(*orgService)
 	usrHandler := handlers.NewUserGraphqlHandler(*usrService)
 
-	r := gin.Default()
+	r := gin.New()
+	r.Use(handlers.GinCtxToCtxMiddleware())
+	r.Use(handlers.LogMiddleware("gin"))
 
 	r.POST("/query", graphqlHandler(&config, &graph.Resolver{
 		OrgHandler: *orgHandler,
